@@ -1,0 +1,228 @@
+.image-browsing-container {
+    width: calc(100vw - 120px);
+    height: calc(100vh - 120px);
+    max-width: unset;
+    max-height: unset;
+    padding: 30px;
+}
+
+.image-browsing-content {
+    flex: 1;
+    flex-direction: row;
+    user-select: none;
+}
+
+/* grid list */
+.image-browsing-content .grid-container {
+    flex: 1;
+    color: #f0f0f0;
+    overflow-y: scroll;
+}
+
+.grid-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.grid-container::-webkit-scrollbar-track {
+    background-color: #f1f1f1;
+    border-radius: 3px;
+}
+
+.grid-container::-webkit-scrollbar-thumb {
+    background-color: #a1a1a1;
+    border-radius: 3px;
+}
+
+.image-browsing-content .grid-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.grid-item {
+    width: 150px;
+    height: 120px;
+}
+
+.grid-item.selected {
+    background-color: #a1a1a1;
+    opacity: 0.7;
+}
+
+.grid-item .folder {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.grid-item .folder::before {
+    content: "";
+    position: absolute;
+    width: 100px;
+    height: 75px;
+    border-radius: 15px;
+    background-image: linear-gradient(
+        45deg,
+        #ffa000,
+        #ffa000 70%,
+        transparent 70%,
+        transparent
+    );
+}
+
+.grid-item .folder::after {
+    content: "";
+    position: absolute;
+    width: 100px;
+    height: 72px;
+    border-radius: 15px;
+    background-color: #ffca28;
+    transform: translateY(10px);
+}
+
+.grid-item .img {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+}
+
+.grid-item .img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.grid-item .name {
+    margin-top: 4px;
+    margin-bottom: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-align: center;
+    text-overflow: ellipsis;
+}
+
+/* operate panel */
+.image-browsing-content .operate-panel-container {
+    width: 170px;
+    display: flex;
+    flex-direction: column;
+    padding-left: 16px;
+}
+
+.image-browsing-content .operate-panel-container .information {
+    flex: 1;
+}
+
+/* image preview */
+.preview-container {
+    box-sizing: border-box;
+    position: absolute;
+    display: flex;
+    left: 15px;
+    top: 30px;
+    right: 15px;
+    bottom: 30px;
+    padding-right: 16px;
+    background-color: #353535;
+    gap: 8px;
+    align-items: center;
+}
+
+.preview-container .close {
+    position: absolute;
+    top: -5px;
+    right: 5px;
+}
+
+.preview-container .preview-img {
+    flex: 1;
+    height: 100%;
+}
+
+.preview-container .preview-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* request loading */
+.loading-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #fff6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loading-container .content {
+    width: 50px;
+    height: 50px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation-name: rotate;
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+}
+
+.loading-container .content .item {
+    width: 6px;
+    height: 10px;
+    border-top-right-radius: 5px;
+    border-bottom-left-radius: 5px;
+    background-color: #fff;
+    position: absolute;
+}
+
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.confirm-wrapper {
+    position: fixed;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #0003;
+    z-index: 900;
+}
+
+.confirm-wrapper .comfy-modal {
+    z-index: 910;
+    display: unset;
+}
+
+.confirm-wrapper .content {
+    width: 300px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 600;
+    padding-bottom: 16px;
+}
+
+.confirm-wrapper .footer {
+    display: flex;
+    justify-content: space-around;
+}
+
+.confirm-wrapper button {
+    width: 120px;
+}
