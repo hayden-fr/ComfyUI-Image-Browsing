@@ -3,16 +3,6 @@ import { api } from "../../scripts/api.js";
 import { ComfyDialog, $el } from "../../scripts/ui.js";
 
 class ImageBrowsing extends ComfyDialog {
-    static instance = null;
-
-    static getInstance() {
-        if (!self.instance) {
-            self.instance = new ImageBrowsing();
-        }
-
-        return self.instance;
-    }
-
     #task = new Set();
     request(route, options) {
         return new Promise((resolve, reject) => {
@@ -214,7 +204,7 @@ class ImageBrowsing extends ComfyDialog {
             [
                 $el("link", {
                     rel: "stylesheet",
-                    href: "./extensions/comfyui-image-browsing/image-browsing.css",
+                    href: "./extensions/ComfyUI-Image-Browsing/image-browsing.css",
                 }),
                 $el("div.comfy-modal-content.image-browsing-content", [
                     gridContainer,
@@ -474,6 +464,15 @@ class ImageBrowsing extends ComfyDialog {
     }
 }
 
+let instance;
+
+const getInstance = () => {
+    if (!instance) {
+        instance = new ImageBrowsing();
+    }
+    return instance;
+};
+
 app.registerExtension({
     name: "Comfy.ImageBrowsing",
 
@@ -481,10 +480,10 @@ app.registerExtension({
         const menu = document.querySelector(".comfy-menu");
 
         const button = document.createElement("button");
-        button.textContent = "Image Browsing";
-        button.id = "comfyui-image-browsing";
+        button.textContent = "Output";
+        button.id = "comfy-image-browsing";
         button.onclick = () => {
-            const instance = ImageBrowsing.getInstance();
+            const instance = getInstance();
             instance.show();
         };
         menu.append(button);

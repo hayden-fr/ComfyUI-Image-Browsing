@@ -100,6 +100,6 @@ async def download_output_files(request):
     return web.json_response({"path": base_name})
 
 
-WEB_DIRECTORY = "js"
+WEB_DIRECTORY = "web"
 NODE_CLASS_MAPPINGS = {}
 __all__ = ["NODE_CLASS_MAPPINGS"]
