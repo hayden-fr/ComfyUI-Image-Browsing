@@ -1,18 +1,28 @@
-import server
 from aiohttp import web
+import server
 import os
 
-if not os.path.exists("web/output"):
-    os.symlink("../output", "./web/output")
+output_path = os.path.join(os.getcwd(), "output")
+extension_path = os.path.join(os.getcwd(), "custom_nodes/ComfyUI-Image-Browsing")
 
 
-base_uri = os.path.join(os.getcwd(), "output")
+@server.PromptServer.instance.routes.get("/image-browsing/preview")
+async def image_preview(request):
+    uri = request.query.get("uri")
+    filepath = os.path.join(output_path, uri)
+
+    if not os.path.exists(filepath):
+        filepath = os.path.join(extension_path, "not-found.png")
+    with open(filepath, "rb") as img_file:
+        image_data = img_file.read()
+
+    return web.Response(body=image_data, content_type="image/png")
 
 
 @server.PromptServer.instance.routes.get("/image-browsing/list")
 async def get_output_files(request):
     uri = request.query.get("uri", "")
-    target_uri = os.path.join(base_uri, uri)
+    target_uri = os.path.join(output_path, uri)
 
     result = []
     if os.path.exists(target_uri):
@@ -41,7 +51,7 @@ async def get_output_files(request):
 async def delete_output_files(request):
     body = await request.json()
     uri = body.get("uri")
-    target_uri = os.path.join(base_uri, uri)
+    target_uri = os.path.join(output_path, uri)
 
     for item in body.get("files", []):
         item_type = item.get("type")
@@ -61,11 +71,11 @@ import zipfile
 import datetime
 
 
-@server.PromptServer.instance.routes.post("/image-browsing/download")
-async def download_output_files(request):
+@server.PromptServer.instance.routes.post("/image-browsing/zip")
+async def zip_output_files(request):
     body = await request.json()
     uri = body.get("uri")
-    target_uri = os.path.join(base_uri, uri, "")
+    target_uri = os.path.join(output_path, uri, "")
 
     file_list: list[str] = body.get("files", [])
     if len(file_list) == 1:
@@ -80,8 +90,8 @@ async def download_output_files(request):
     base_name = "{}-{}".format(base_name, timestamp.strftime("%Y%m%dT%H%M%SZ"))
     base_name = "{}.zip".format(base_name)
 
-    output_path = os.path.join(base_uri, base_name)
-    with zipfile.ZipFile(output_path, "w") as zip:
+    temp_path = os.path.join(output_path, base_name)
+    with zipfile.ZipFile(temp_path, "w") as zip:
         for item in file_list:
             filetype = item.get("type")
             filename = item.get("name")
@@ -97,7 +107,19 @@ async def download_output_files(request):
                         _filename = os.path.join(filename, file)
                         zip.write(_filepath, _filename)
 
-    return web.json_response({"path": base_name})
+    return web.json_response({"type": "zip", "name": base_name})
+
+
+@server.PromptServer.instance.routes.post("/image-browsing/download")
+async def download_zip_file(request):
+    body = await request.json()
+    filename = body.get("name")
+    filepath = os.path.join(output_path, filename)
+
+    with open(filepath, "rb") as file:
+        file_data = file.read()
+
+    return web.Response(body=file_data, content_type="application/x-zip-compressed")
 
 
 WEB_DIRECTORY = "web"

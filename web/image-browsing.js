@@ -2,189 +2,296 @@ import { app } from "../../scripts/app.js";
 import { api } from "../../scripts/api.js";
 import { ComfyDialog, $el } from "../../scripts/ui.js";
 
-class ImageBrowsing extends ComfyDialog {
-    #task = new Set();
-    request(route, options) {
-        return new Promise((resolve, reject) => {
-            let delay;
-            if (this.#task.size === 0) {
-                delay = setTimeout(() => {
-                    this.loadingMask.style.display = "";
-                }, 200);
-            }
+function request(route, options) {
+    return new Promise((resolve, reject) => {
+        api.fetchApi(route, options)
+            .then((response) => response.json())
+            .then(resolve)
+            .catch(reject);
+    });
+}
 
-            const uid = Date.now();
-            this.#task.add(uid);
+class Grid {
+    /**
+     * @typedef ItemType
+     * @prop {'dir' | 'img'} type
+     * @prop {string} name
+     * @prop {string} [imgUrl]
+     */
 
-            api.fetchApi(route, options)
-                .then((response) => response.json())
-                .then(resolve)
-                .catch(reject)
-                .finally(() => {
-                    clearTimeout(delay);
+    /**
+     * @typedef GridProps
+     * @prop {function} [onLoading]
+     * @prop {function} [onPreview]
+     */
 
-                    setTimeout(() => {
-                        this.#task.delete(uid);
-                        if (this.#task.size === 0) {
-                            this.loadingMask.style.display = "none";
-                        }
-                    }, 20);
-                });
-        });
-    }
+    /** @type {GridProps} */
+    #props = {};
 
-    confirm(options) {
-        return new Promise((resolve, reject) => {
-            const wrapper = document.createElement("div");
-            wrapper.className = "confirm-wrapper";
-
-            const container = $el("div.comfy-modal", [
-                $el("div.content", {
-                    textContent: options.content,
-                }),
-                $el("div.footer", [
-                    $el("button.cancel", {
-                        textContent: "Cancel",
-                        onclick: () => {
-                            reject();
-                            document.body.removeChild(wrapper);
-                        },
-                    }),
-                    $el("button.sure", {
-                        textContent: "Sure",
-                        onclick: () => {
-                            resolve();
-                            document.body.removeChild(wrapper);
-                        },
-                    }),
-                ]),
-            ]);
-
-            wrapper.appendChild(container);
-            document.body.appendChild(wrapper);
-        });
-    }
-
-    constructor() {
-        super();
-
-        // image grid list
-        const gridContainer = $el("div.grid-container", [
-            $el("div.grid-content"),
-        ]);
+    /**
+     * @param {GridProps} props
+     */
+    constructor(props) {
         /** @type {HTMLDivElement} */
-        this.gridContainer = gridContainer;
+        this.element = $el("div.grid");
+        this.#props = props ?? {};
+    }
 
-        // image base info
-        const informationContainer = $el("div.information");
-        this.informationContainer = informationContainer;
+    /**
+     * directory level paths
+     * @type {string[]}
+     */
+    #breadCrumbs = [];
 
-        // left operate buttons panel
-        const operatePanel = $el("div.operate-panel-container", [
-            $el("button.refresh", {
-                type: "button",
-                textContent: "Refresh",
-                onclick: () => this.refreshImageList(),
-            }),
-            $el("button.download", {
-                type: "button",
-                textContent: "Download",
-                onclick: () => {
-                    let fileName;
-                    this.request("/image-browsing/download", {
-                        method: "POST",
-                        body: JSON.stringify({
-                            uri: this.breadCrumbs.join("/"),
-                            files: this.selectedItems,
-                        }),
-                    })
-                        .then(({ path }) => {
-                            fileName = path;
-                            return fetch(`/output/${fileName}`);
-                        })
-                        .then((response) => response.blob())
-                        .then((blob) => {
-                            const a = document.createElement("a");
-                            const url = URL.createObjectURL(blob);
-                            a.href = url;
-                            a.download = fileName;
-                            a.click();
-                            URL.revokeObjectURL(url);
-                        })
-                        .then(() => {
-                            this.request("/image-browsing/files", {
-                                method: "DELETE",
-                                body: JSON.stringify({
-                                    uri: "",
-                                    files: [{ type: "file", name: fileName }],
-                                }),
-                            });
-                        })
-                        .catch((error) => {
-                            console.error("文件下载失败", error);
-                        });
-                },
-            }),
-            $el("button.delete", {
-                type: "button",
-                textContent: "Delete",
-                onclick: async () => {
-                    await this.confirm({
-                        content: "Delete selected items?",
-                    });
-                    await this.request("/image-browsing/files", {
-                        method: "DELETE",
-                        body: JSON.stringify({
-                            uri: this.breadCrumbs.join("/"),
-                            files: this.selectedItems,
-                        }),
-                    });
-                    this.selectedItems = [];
-                    await this.refreshImageList();
-                },
-            }),
-            informationContainer,
+    /**
+     * all items
+     * @type {ItemType[]}
+     */
+    #dataSource = [];
+
+    /**
+     * selected items
+     * @type {ItemType[]}
+     */
+    #selectedItems = [];
+
+    #parsePath(file) {
+        return [...this.#breadCrumbs, file].filter(Boolean).join("/");
+    }
+
+    async refresh() {
+        this.#props.onLoading?.(true);
+        const uri = this.#parsePath();
+        return request(`/image-browsing/list?uri=${uri}`)
+            .then((/** @type {ItemType[]} */ resData) => {
+                this.#dataSource = resData.map((item) => {
+                    if (item.type === "img") {
+                        const uri = this.#parsePath(item.name);
+                        const imgUrl = `/image-browsing/preview?uri=${uri}`;
+                        item.imgUrl = imgUrl;
+                    }
+                    return item;
+                });
+                this.#updateDom();
+            })
+            .finally(() => {
+                this.#props.onLoading?.(false);
+            });
+    }
+
+    /**
+     * all dom of items
+     * @type {HTMLDivElement[]}
+     */
+    #itemDomList = [];
+
+    #updateDom() {
+        this.element.innerHTML = null;
+
+        /**
+         * @param {ItemType} item
+         */
+        const $folder = (item, attr = {}) => {
+            return $el("div.grid-item", attr, [
+                $el("div.folder"),
+                $el("p.name", [item.name]),
+            ]);
+        };
+
+        /**
+         * @param {ItemType} item
+         */
+        const $image = (item, attr) => {
+            return $el("div.grid-item", attr, [
+                $el("div.image", [$el("img", { src: item.imgUrl })]),
+                $el("p.name", [item.name]),
+            ]);
+        };
+
+        const imageList = [];
+        const items = this.#dataSource.map((item) => {
+            if (item.type === "dir") {
+                return $folder(item, {
+                    onclick: this.#toggleSelect.bind(this, item),
+                    ondblclick: (e) => {
+                        e.stopPropagation();
+                        this.#breadCrumbs.push(item.name);
+                        this.refresh();
+                    },
+                });
+            }
+            imageList.push(item);
+            return $image(item, {
+                onclick: this.#toggleSelect.bind(this, item),
+                ondblclick: () => this.#props.onPreview?.(item, imageList),
+            });
+        });
+        if (this.#breadCrumbs.length > 0) {
+            const parentItem = { type: "dir", name: ".." };
+            items.unshift(
+                $folder(parentItem, {
+                    ondblclick: (e) => {
+                        e.stopPropagation();
+                        this.#breadCrumbs.pop();
+                        this.refresh();
+                    },
+                })
+            );
+        }
+        this.#itemDomList = items;
+        this.element.append.apply(this.element, items);
+    }
+
+    /**
+     * @param {ItemType} item
+     * @param {Event} event
+     */
+    #toggleSelect(item, event) {
+        event.stopPropagation();
+
+        if (event.shiftKey) {
+            if (this.#selectedItems.length === 0) {
+                this.#selectedItems = [item];
+            } else {
+                const start = this.#selectedItems.shift();
+
+                const [begin, end] = [
+                    this.#dataSource.findIndex((o) => o.name === start.name),
+                    this.#dataSource.findIndex((o) => o.name === item.name),
+                ].sort((a, b) => a - b);
+
+                const range = this.#dataSource.slice(begin, end + 1);
+                this.#selectedItems = [
+                    start,
+                    ...range.filter((o) => o.name !== start.name),
+                ];
+            }
+        } else if (event.ctrlKey) {
+            if (this.#selectedItems.some((o) => o.name === item.name)) {
+                this.#selectedItems = this.#selectedItems.filter(
+                    (o) => o.name !== item.name
+                );
+            } else {
+                this.#selectedItems.push(item);
+            }
+        } else {
+            this.#selectedItems = [item];
+        }
+
+        const selectedKeys = this.#selectedItems.map((o) => o.name);
+
+        this.#itemDomList.forEach((el) => {
+            const name = el.innerText;
+            if (selectedKeys.includes(name)) {
+                el.classList.add("selected");
+            } else {
+                el.classList.remove("selected");
+            }
+        });
+    }
+
+    getSelected() {
+        return this.#selectedItems;
+    }
+
+    getDirname() {
+        return this.#parsePath();
+    }
+
+    cleanSelected() {
+        this.#selectedItems = [];
+    }
+}
+
+class Preview {
+    constructor() {
+        /** @type {HTMLDivElement} */
+        this.element = $el("div.preview-container", [
             $el("button.close", {
-                type: "button",
-                textContent: "Close",
+                textContent: "X",
                 onclick: () => this.close(),
             }),
+            $el("button.prev", {
+                type: "button",
+                textContent: "<",
+                style: { order: -1 },
+                onclick: () => this.#prevImage(),
+            }),
+            $el("button.next", {
+                type: "button",
+                textContent: ">",
+                style: { order: 1 },
+                onclick: () => this.#nextImage(),
+            }),
+            $el("div.preview-img"),
         ]);
-        this.operatePanel = operatePanel;
+        this.element.style.display = "none";
 
-        // image preview
-        const previewContainer = $el(
-            "div.preview-container",
-            {
-                style: { display: "none" },
-            },
-            [
-                $el("button.close", {
-                    textContent: "X",
-                    onclick: () => {
-                        this.previewContainer.style.display = "none";
-                        this.gridContainer.style.overflowY = "";
-                        document.removeEventListener(
-                            "keyup",
-                            this.keyboardController
-                        );
-                    },
-                }),
-                $el("button.prev", {
-                    textContent: "<",
-                    onclick: () => this.prevImageItem(),
-                }),
-                $el("div.preview-img"),
-                $el("button.next", {
-                    textContent: ">",
-                    onclick: () => this.nextImageItem(),
-                }),
-            ]
-        );
-        this.previewContainer = previewContainer;
+        this.#listenShortKey = (event) => {
+            switch (event.code) {
+                case "ArrowRight":
+                    this.#nextImage();
+                    break;
+                case "ArrowLeft":
+                    this.#prevImage();
+                    break;
+                default:
+                    break;
+            }
+        };
+    }
 
-        // loading mask
-        const loadingMask = $el("div.loading-container", {}, [
+    #listenShortKey;
+
+    /** @type {ItemType[]} */
+    #imageList = [];
+
+    /** @type {number} */
+    #current;
+
+    #nextImage() {
+        const next = this.#current + 1;
+        this.#current = next >= this.#imageList.length ? 0 : next;
+        this.#updateImage();
+    }
+
+    #prevImage() {
+        const next = this.#current - 1;
+        this.#current = next < 0 ? this.#imageList.length - 1 : next;
+        this.#updateImage();
+    }
+
+    /**
+     * @param {ItemType} item
+     * @param {ItemType[]} list
+     */
+    show(item, list) {
+        this.#imageList = list;
+        this.#current = list.findIndex((o) => o.name === item.name);
+        this.element.style.display = "";
+        this.#updateImage();
+        document.addEventListener("keyup", this.#listenShortKey);
+    }
+
+    /**
+     * @param {ItemType} item
+     */
+    #updateImage() {
+        const item = this.#imageList[this.#current];
+        const preview = this.element.querySelector(".preview-img");
+        preview.innerHTML = `<img src="${item.imgUrl}" />`;
+    }
+
+    close() {
+        this.element.style.display = "none";
+        document.removeEventListener("keyup", this.#listenShortKey);
+    }
+}
+
+class Loading {
+    constructor() {
+        /** @type {HTMLDivElement} */
+        this.element = $el("div.loading-container", [
             $el(
                 "div.content",
                 Array.from({ length: 8 }, (_, index) => {
@@ -196,276 +303,183 @@ class ImageBrowsing extends ComfyDialog {
                 })
             ),
         ]);
-        this.loadingMask = loadingMask;
+    }
+
+    toggle(status) {
+        if (status) {
+            this.element.style.display = "";
+        } else {
+            this.element.style.display = "none";
+        }
+    }
+}
+
+class ImageBrowsing extends ComfyDialog {
+    #confirm(options) {
+        return new Promise((resolve, reject) => {
+            const confirm = { value: null };
+
+            $el(
+                "div.confirm-mask",
+                { parent: this.element, $: (el) => (confirm.value = el) },
+                [
+                    $el("div.comfy-modal", [
+                        $el("div.content", {
+                            textContent: options.content,
+                        }),
+                        $el("div.footer", [
+                            $el("button.cancel", {
+                                textContent: "Cancel",
+                                onclick: () => {
+                                    reject();
+                                    this.element.removeChild(confirm.value);
+                                },
+                            }),
+                            $el("button.sure", {
+                                textContent: "Sure",
+                                onclick: () => {
+                                    resolve();
+                                    this.element.removeChild(confirm.value);
+                                },
+                            }),
+                        ]),
+                    ]),
+                ]
+            );
+        });
+    }
+
+    #loading;
+    #preview;
+    #grid;
+
+    constructor() {
+        super();
+
+        this.#loading = new Loading();
+        this.#preview = new Preview();
+        this.#grid = new Grid({
+            onLoading: this.#loading.toggle.bind(this.#loading),
+            onPreview: this.#preview.show.bind(this.#preview),
+        });
 
         this.element = $el(
-            "div.comfy-modal.image-browsing-container",
+            "div.comfy-modal.image-browsing",
             { parent: document.body },
             [
-                $el("link", {
-                    rel: "stylesheet",
-                    href: "./extensions/ComfyUI-Image-Browsing/image-browsing.css",
-                }),
-                $el("div.comfy-modal-content.image-browsing-content", [
-                    gridContainer,
-                    operatePanel,
-                    previewContainer,
-                    loadingMask,
+                $el("div.comfy-modal-content", [
+                    this.#createToolbar(),
+                    $el("div.grid-container", [this.#grid.element]),
+                    this.#preview.element,
+                    this.#loading.element,
                 ]),
             ]
         );
-
-        this.refreshImageList();
     }
 
-    /** @type {Array<string>} */
-    breadCrumbs = [];
-    /** @type {Array<ItemType>} */
-    contentList = [];
-    /** @type {Array<ImageItem>} */
-    imageList = [];
-
-    async refreshImageList() {
-        const uri = this.breadCrumbs.join("/");
-        const resData = await this.request(`/image-browsing/list?uri=${uri}`);
-        this.contentList = resData;
-        this.updateGridContent(resData);
+    #createToolbar() {
+        return $el("div.row.toolbar", [
+            $el("button.refresh", {
+                type: "button",
+                textContent: "Refresh",
+                onclick: () => this.#grid.refresh(),
+            }),
+            $el("button.download", {
+                type: "button",
+                textContent: "Download",
+                onclick: () => this.#downloadSelectItems(),
+            }),
+            $el("button.delete", {
+                type: "button",
+                textContent: "Delete",
+                onclick: () => this.#deleteSelectItems(),
+            }),
+            $el("button.close", {
+                type: "button",
+                textContent: "X",
+                style: { marginLeft: "auto" },
+                onclick: () => this.close(),
+            }),
+        ]);
     }
 
-    /**
-     * @typedef ImageItem
-     * @prop {string} imgUrl
-     * @prop {number} index
-     */
-
-    /**
-     * @typedef ItemType
-     * @prop {string} type
-     * @prop {string} name
-     */
-
-    /**
-     * @param {Array<ItemType>} dataSource
-     */
-    updateGridContent(dataSource) {
-        const gridContent = this.gridContainer.querySelector(".grid-content");
-        gridContent.innerHTML = null;
-
-        if (this.breadCrumbs.length > 0) {
-            // generate parent dir
-            const parentFolderName = "..";
-            gridContent.append(
-                $el(
-                    "div.grid-item",
-                    {
-                        ondblclick: () => {
-                            this.breadCrumbs.pop();
-                            this.refreshImageList();
-                            this.selectedItems = [];
-                        },
-                    },
-                    [
-                        $el("div.folder"),
-                        $el("p.name", { textContent: parentFolderName }),
-                    ]
-                )
-            );
+    #downloadSelectItems() {
+        const uri = this.#grid.getDirname();
+        const files = this.#grid.getSelected();
+        if (files.length === 0) {
+            return;
         }
 
-        const imageList = [];
-        const baseUrl = this.breadCrumbs.join("/");
+        this.#loading.toggle(true);
 
-        dataSource.forEach((item) => {
-            if (item.type === "dir") {
-                gridContent.append(
-                    $el(
-                        "div.grid-item",
-                        {
-                            onclick: this.selectItem.bind(this, item),
-                            ondblclick: () => {
-                                this.breadCrumbs.push(item.name);
-                                this.refreshImageList();
-                                this.selectedItems = [];
-                            },
-                        },
-                        [
-                            $el("div.folder"),
-                            $el("p.name", {
-                                title: item.name,
-                                textContent: item.name,
-                            }),
-                        ]
-                    )
-                );
-            }
-
-            if (item.type === "img") {
-                const imgUrl = ["output", baseUrl, item.name].join("/");
-                const index = imageList.length;
-                const imageItem = { imgUrl, index };
-                imageList.push(imageItem);
-
-                gridContent.append(
-                    $el(
-                        "div.grid-item",
-                        {
-                            onclick: this.selectItem.bind(this, item),
-                            ondblclick: () => {
-                                this.previewImageItem = imageItem;
-                                this.showImagePreview();
-                            },
-                        },
-                        [
-                            $el("div.img", [$el("img", { src: imgUrl })]),
-                            $el("p.name", {
-                                title: item.name,
-                                textContent: item.name,
-                            }),
-                        ]
-                    )
-                );
-            }
-        });
-
-        this.imageList = imageList;
-    }
-
-    /** @type {Array<ItemType>} */
-    selectedItems = [];
-
-    /**
-     * Change selected item
-     *
-     * @param {ItemType} item
-     * @param {Event} event
-     */
-    selectItem(item, event) {
-        event.stopPropagation();
-
-        /**
-         * @param {ItemType} current
-         * @param {boolean} status
-         */
-        const highlight = (current, status) => {
-            const currentItem = this.gridContainer.querySelector(
-                `.grid-content div.grid-item:has(p[title="${current.name}"])`
-            );
-            if (status) {
-                currentItem.classList.add("selected");
-            } else {
-                currentItem.classList.remove("selected");
-            }
-        };
-
-        if (event.shiftKey) {
-            const startItem = this.selectedItems.shift();
-            if (startItem) {
-                // unset other selected item highlight
-                this.selectedItems.forEach((item) => {
-                    highlight(item, false);
+        const file = { value: null };
+        request("/image-browsing/zip", {
+            method: "POST",
+            body: JSON.stringify({ uri, files }),
+        })
+            .then((fileInfo) => {
+                file.value = fileInfo;
+                return fetch("/image-browsing/download", {
+                    method: "POST",
+                    body: JSON.stringify(fileInfo),
                 });
-                this.selectedItems = [startItem];
-
-                // resolve selected range
-                const contentList = this.contentList;
-                const asc = (a, b) => a - b;
-                const [startIndex, endIndex] = [
-                    contentList.findIndex((o) => o.name === startItem.name),
-                    contentList.findIndex((o) => o.name === item.name),
-                ].sort(asc);
-                this.selectedItems.push(
-                    ...contentList
-                        .slice(startIndex, endIndex + 1)
-                        .filter((o) => o.name !== startItem.name)
-                );
-                this.selectedItems.forEach((item) => {
-                    highlight(item, true);
+            })
+            .then((response) => response.blob())
+            .then((blob) => {
+                const downloadUrl = URL.createObjectURL(blob);
+                const download = $el("a", {
+                    href: downloadUrl,
+                    download: file.value?.name,
                 });
-            } else {
-                this.selectedItems = [item];
-                highlight(item, true);
-            }
-        }
-        // multi select
-        else if (event.ctrlKey) {
-            const selectedItems = this.selectedItems.map((item) => item.name);
-            if (selectedItems.includes(item.name)) {
-                const index = selectedItems.indexOf(item.name);
-                this.selectedItems.splice(index, 1);
-                // remove el active
-                highlight(item, false);
-            } else {
-                this.selectedItems.push(item);
-                // add el active
-                highlight(item, true);
-            }
-        } else {
-            // remove old item active
-            this.selectedItems.forEach((item) => {
-                highlight(item, false);
+                download.click();
+                URL.revokeObjectURL(downloadUrl);
+            })
+            .then(() => {
+                return request("/image-browsing/files", {
+                    method: "DELETE",
+                    body: JSON.stringify({ uri: "", files: [file.value] }),
+                });
+            })
+            .finally(() => {
+                this.#loading.toggle(false);
             });
-            this.selectedItems = [item];
-            // add new item active
-            highlight(item, true);
+    }
+
+    #deleteSelectItems() {
+        const uri = this.#grid.getDirname();
+        const files = this.#grid.getSelected();
+        if (files.length === 0) {
+            return;
         }
+
+        this.#loading.toggle(true);
+
+        this.#confirm({
+            content: "Confirm delete selected items?",
+        })
+            .then(() =>
+                request("/image-browsing/files", {
+                    method: "DELETE",
+                    body: JSON.stringify({ uri, files }),
+                })
+            )
+            .then(() => this.#grid.refresh())
+            .finally(() => {
+                this.#loading.toggle(false);
+            });
     }
 
-    showImagePreview() {
-        const imageItem = this.previewImageItem;
-        this.previewContainer.style.display = "";
-        this.gridContainer.style.overflowY = "hidden";
-        const content = this.previewContainer.querySelector(".preview-img");
-        content.innerHTML = `<img src="${imageItem.imgUrl}" />`;
-        // listen arrow key to change preview image
-        const arrowKeyboardController = (event) => {
-            switch (event.code) {
-                case "ArrowRight":
-                    this.nextImageItem();
-                    break;
-                case "ArrowLeft":
-                    this.prevImageItem();
-                    break;
-                default:
-                    break;
-            }
-        };
-        if (!this.listenArrowKeyBoard) {
-            this.__arrowKeyboardController = arrowKeyboardController;
-            document.addEventListener("keyup", this.__arrowKeyboardController);
-            this.listenArrowKeyBoard = true;
-        }
-    }
-
-    closeImagePreview() {
-        this.previewContainer.style.display = "none";
-        this.gridContainer.style.overflowY = "";
-        this.previewImageItem = null;
-        this.listenArrowKeyBoard = false;
-        document.removeEventListener("keyup", this.__arrowKeyboardController);
-        this.__arrowKeyboardController = null;
-    }
-
-    prevImageItem() {
-        const index = this.previewImageItem.index - 1;
-        this.previewImageItem =
-            index < 0
-                ? this.imageList[this.imageList.length - 1]
-                : this.imageList[index];
-        this.showImagePreview(this.previewImageItem);
-    }
-
-    nextImageItem() {
-        const index = this.previewImageItem.index + 1;
-        this.previewImageItem =
-            index >= this.imageList.length
-                ? this.imageList[0]
-                : this.imageList[index];
-        this.showImagePreview(this.previewImageItem);
+    show() {
+        super.show();
+        this.#grid.refresh();
     }
 }
 
 let instance;
 
+/**
+ * @returns {ImageBrowsing}
+ */
 const getInstance = () => {
     if (!instance) {
         instance = new ImageBrowsing();
@@ -477,15 +491,19 @@ app.registerExtension({
     name: "Comfy.ImageBrowsing",
 
     async setup() {
-        const menu = document.querySelector(".comfy-menu");
+        $el("link", {
+            parent: document.head,
+            rel: "stylesheet",
+            href: "./extensions/ComfyUI-Image-Browsing/image-browsing.css",
+        });
 
-        const button = document.createElement("button");
-        button.textContent = "Output";
-        button.id = "comfy-image-browsing";
-        button.onclick = () => {
-            const instance = getInstance();
-            instance.show();
-        };
-        menu.append(button);
+        $el("button", {
+            parent: document.querySelector(".comfy-menu"),
+            textContent: "Output",
+            style: { order: 1 },
+            onclick: () => {
+                getInstance().show();
+            },
+        });
     },
 });

@@ -1,56 +1,68 @@
-.image-browsing-container {
-    width: calc(100vw - 120px);
-    height: calc(100vh - 120px);
+/* image browsing */
+.image-browsing {
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
     max-width: unset;
     max-height: unset;
-    padding: 30px;
+    padding: 10px;
+    color: #fff;
     z-index: 2000;
-}
-
-.image-browsing-content {
-    flex: 1;
-    flex-direction: row;
     user-select: none;
 }
 
-/* grid list */
-.image-browsing-content .grid-container {
-    flex: 1;
-    color: #f0f0f0;
-    overflow-y: scroll;
+.image-browsing .comfy-modal-content {
+    width: 100%;
 }
 
-.grid-container::-webkit-scrollbar {
+/* common style */
+.image-browsing ::-webkit-scrollbar {
     width: 6px;
 }
 
-.grid-container::-webkit-scrollbar-track {
-    background-color: #f1f1f1;
-    border-radius: 3px;
+.image-browsing ::-webkit-scrollbar-track {
+    background-color: #353535;
 }
 
-.grid-container::-webkit-scrollbar-thumb {
+.image-browsing ::-webkit-scrollbar-thumb {
     background-color: #a1a1a1;
     border-radius: 3px;
 }
 
-.image-browsing-content .grid-content {
+.image-browsing .row {
+    width: 100%;
     display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
+    gap: 8px;
 }
 
-.grid-item {
+.image-browsing .toolbar {
+    padding-bottom: 16px;
+    background-color: #353535;
+}
+
+/* grid list */
+.image-browsing .grid-container {
+    flex: 1;
+    overflow-y: scroll;
+}
+
+.image-browsing .grid {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.image-browsing .grid-item {
     width: 150px;
     height: 120px;
 }
 
-.grid-item.selected {
+.image-browsing .grid-item.selected {
     background-color: #a1a1a1;
     opacity: 0.7;
 }
 
-.grid-item .folder {
+.image-browsing .grid-item .folder {
     position: relative;
     width: 100px;
     height: 100px;
@@ -60,7 +72,7 @@
     align-items: center;
 }
 
-.grid-item .folder::before {
+.image-browsing .grid-item .folder::before {
     content: "";
     position: absolute;
     width: 100px;
@@ -75,7 +87,7 @@
     );
 }
 
-.grid-item .folder::after {
+.image-browsing .grid-item .folder::after {
     content: "";
     position: absolute;
     width: 100px;
@@ -85,19 +97,19 @@
     transform: translateY(10px);
 }
 
-.grid-item .img {
+.image-browsing .grid-item .image {
     width: 100px;
     height: 100px;
     margin: 0 auto;
 }
 
-.grid-item .img img {
+.image-browsing .grid-item img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.grid-item .name {
+.image-browsing .grid-item .name {
     margin-top: 4px;
     margin-bottom: 0;
     overflow: hidden;
@@ -106,37 +118,30 @@
     text-overflow: ellipsis;
 }
 
-/* operate panel */
-.image-browsing-content .operate-panel-container {
-    width: 170px;
-    display: flex;
-    flex-direction: column;
-    padding-left: 16px;
-}
-
-.image-browsing-content .operate-panel-container .information {
-    flex: 1;
-}
-
 /* image preview */
 .preview-container {
     box-sizing: border-box;
     position: absolute;
     display: flex;
-    left: 15px;
-    top: 30px;
-    right: 15px;
-    bottom: 30px;
-    padding-right: 16px;
-    background-color: #353535;
     gap: 8px;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #353535;
     align-items: center;
+    padding: 0 16px;
 }
 
 .preview-container .close {
     position: absolute;
-    top: -5px;
-    right: 5px;
+    top: 10px;
+    right: 10px;
+}
+
+.preview-container .prev,
+.preview-container .next {
+    height: 100px;
 }
 
 .preview-container .preview-img {
@@ -193,8 +198,8 @@
     }
 }
 
-.confirm-wrapper {
-    position: fixed;
+.confirm-mask {
+    position: absolute;
     left: 0;
     top: 0;
     right: 0;
@@ -203,27 +208,26 @@
     justify-content: center;
     align-items: center;
     background-color: #0003;
-    z-index: 900;
 }
 
-.confirm-wrapper .comfy-modal {
-    z-index: 910;
-    display: unset;
+.confirm-mask .comfy-modal {
+    display: flex;
+    flex-direction: column;
 }
 
-.confirm-wrapper .content {
-    width: 300px;
+.confirm-mask .content {
+    white-space: nowrap;
     text-align: center;
     font-size: 24px;
     font-weight: 600;
     padding-bottom: 16px;
 }
 
-.confirm-wrapper .footer {
+.confirm-mask .footer {
     display: flex;
     justify-content: space-around;
 }
 
-.confirm-wrapper button {
+.confirm-mask button {
     width: 120px;
 }
