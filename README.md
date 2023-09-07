@@ -4,5 +4,5 @@
 
 ```sh
 cd ComfyUI/custom_nodes
-git clone https://github.com/hayden-fr/comfyui-image-browsing.git
+git clone https://github.com/hayden-fr/ComfyUI-Image-Browsing.git
 ```
