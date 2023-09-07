@@ -2,8 +2,9 @@ from aiohttp import web
 import server
 import os
 
-output_path = os.path.join(os.getcwd(), "output")
-extension_path = os.path.join(os.getcwd(), "custom_nodes/ComfyUI-Image-Browsing")
+comfy_ui_path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+output_path = os.path.join(comfy_ui_path, "output")
+extension_path = os.path.join(comfy_ui_path, "custom_nodes/ComfyUI-Image-Browsing")
 
 
 @server.PromptServer.instance.routes.get("/image-browsing/preview")
