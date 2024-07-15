@@ -1,9 +1,10 @@
 from aiohttp import web
 import server
 import os
+import folder_paths
 
 comfy_ui_path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-output_path = os.path.join(comfy_ui_path, "output")
+output_path = folder_paths.get_output_directory()
 extension_path = os.path.join(comfy_ui_path, "custom_nodes/ComfyUI-Image-Browsing")
 
 
