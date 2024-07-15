@@ -497,13 +497,43 @@ app.registerExtension({
             href: "./extensions/ComfyUI-Image-Browsing/image-browsing.css",
         });
 
-        $el("button", {
-            parent: document.querySelector(".comfy-menu"),
-            textContent: "Output",
-            style: { order: 1 },
-            onclick: () => {
-                getInstance().show();
-            },
-        });
+        app.ui.menuContainer.appendChild(
+            $el("button", {
+                id: "comfyui-image-browsing-button",
+                textContent: "Output",
+                onclick: () => {
+                    getInstance().show();
+                },
+            })
+        );
+
+        // [Beta] Adapt to new menu style
+        const createImageIcon = (el) => {
+            const ns = "http://www.w3.org/2000/svg";
+            const svg = document.createElementNS(ns, "svg");
+            svg.setAttribute("viewBox", "0 0 1024 1024");
+            svg.setAttribute("width", "1em");
+            svg.setAttribute("height", "1em");
+            svg.style.fontSize = 19;
+            const customPath = document.createElementNS(ns, "path");
+            const drawPath =
+                "M928 160H96c-17.7 0-32 14.3-32 32v640c0 17.7 14.3 32 32 32h832c17.7 0 32-14.3 32-32V192c0-17.7-14.3-32-32-32zM338 304c35.3 0 64 28.7 64 64s-28.7 64-64 64-64-28.7-64-64 28.7-64 64-64z m513.9 437.1c-1.4 1.2-3.3 1.9-5.2 1.9H177.2c-4.4 0-8-3.6-8-8 0-1.9 0.7-3.7 1.9-5.2l170.3-202c2.8-3.4 7.9-3.8 11.3-1 0.3 0.3 0.7 0.6 1 1l99.4 118 158.1-187.5c2.8-3.4 7.9-3.8 11.3-1 0.3 0.3 0.7 0.6 1 1l229.6 271.6c2.6 3.3 2.2 8.4-1.2 11.2z";
+            customPath.setAttribute("d", drawPath);
+            customPath.setAttribute("fill", "currentColor");
+            svg.appendChild(customPath);
+            el.appendChild(svg);
+        };
+
+        $el(
+            "div.comfyui-button-group",
+            { parent: document.querySelector("section.comfyui-menu-push") },
+            $el("button.comfyui-button", {
+                title: "View Output Images",
+                $: createImageIcon,
+                onclick: () => {
+                    getInstance().show();
+                },
+            })
+        );
     },
 });
