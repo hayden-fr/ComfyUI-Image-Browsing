@@ -9,6 +9,6 @@ Repository = "https://github.com/hayden-fr/ComfyUI-Image-Browsing"
 #  Used by Comfy Registry https://comfyregistry.org
 
 [tool.comfy]
-PublisherId = ""
+PublisherId = "hayden"
 DisplayName = "ComfyUI-Image-Browsing"
 Icon = ""
