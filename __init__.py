@@ -7,6 +7,12 @@ config.extension_uri = os.path.dirname(__file__)
 config.output_uri = folder_paths.get_output_directory()
 
 
+from .py import utils
+
+version = utils.get_current_version()
+utils.download_web_distribution(version)
+
+
 from aiohttp import web
 from .py import services
 
