@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "lint": "eslint src",
     "prepare": "husky"
   },
   "devDependencies": {
@@ -15,6 +16,7 @@
     "@vitejs/plugin-vue": "^5.1.4",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.10.0",
+    "eslint-plugin-unused-imports": "^4.1.4",
     "eslint-plugin-vue": "^9.28.0",
     "husky": "^9.1.6",
     "less": "^4.2.0",
