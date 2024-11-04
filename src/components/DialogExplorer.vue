@@ -117,11 +117,16 @@
                     ></path>
                   </svg>
                 </div>
-                <img
+                <a
                   v-else-if="rowItem.type === 'image'"
-                  class="h-full w-full object-contain"
-                  :src="`/image-browsing${rowItem.fullname}?preview=true`"
-                />
+                  :href="`/image-browsing${rowItem.fullname}`"
+                  target="_blank"
+                >
+                  <img
+                    class="h-full w-full object-contain"
+                    :src="`/image-browsing${rowItem.fullname}?preview=true`"
+                  />
+                </a>
               </div>
               <div class="flex w-full justify-center overflow-hidden px-1">
                 <span class="overflow-hidden text-ellipsis text-xs">
@@ -158,16 +163,14 @@
 </template>
 
 <script setup lang="ts">
+import ResponseInput from 'components/ResponseInput.vue'
 import ResponseScroll from 'components/ResponseScroll.vue'
 import ResponseSelect from 'components/ResponseSelect.vue'
-import ResponseInput from 'components/ResponseInput.vue'
-import Button from 'primevue/button'
-import InputText from 'primevue/inputtext'
 import { useExplorer } from 'hooks/explorer'
 import { defineResizeCallback } from 'hooks/resize'
-import { computed, ref } from 'vue'
 import { chunk } from 'lodash'
-import ImageCompare from 'primevue/imagecompare'
+import Button from 'primevue/button'
+import { computed, ref } from 'vue'
 
 const { loading, breadcrumb, items, refresh, entryFolder, goBackParentFolder } =
   useExplorer()
