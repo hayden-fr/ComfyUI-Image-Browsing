@@ -26,8 +26,9 @@ function css(): Plugin {
           const chunk = bundle[key]
           if (chunk.type === 'chunk' && /index-.*\.js$/.test(chunk.fileName)) {
             const originalCode = chunk.code
+            const styleId = 'comfyui-image-browsing'
             chunk.code = '(function(){var s=document.createElement("style");'
-            chunk.code += 's.type="text/css",s.dataset.styleId="model-manager",'
+            chunk.code += `s.type="text/css",s.dataset.styleId="${styleId}",`
             chunk.code += 's.appendChild(document.createTextNode('
             chunk.code += JSON.stringify(cssCode.join(''))
             chunk.code += ')),document.head.appendChild(s);})();'
