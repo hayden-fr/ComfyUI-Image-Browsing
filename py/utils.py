@@ -5,7 +5,17 @@ import requests
 import shutil
 import tarfile
 import yaml
+import traceback
 from . import config
+
+
+def print_info(msg, *args, **kwargs):
+    logging.info(f"[{config.extension_tag}] {msg}", *args, **kwargs)
+
+
+def print_error(msg, *args, **kwargs):
+    logging.error(f"[{config.extension_tag}] {msg}", *args, **kwargs)
+    logging.debug(traceback.format_exc())
 
 
 def get_current_version():
@@ -36,8 +46,8 @@ def download_web_distribution(version: str):
         return
 
     try:
-        logging.info(f"[ComfyUI Image Browsing] current version {version}, web version {web_version}")
-        logging.info("Downloading web distribution...")
+        print_info(f"current version {version}, web version {web_version}")
+        print_info(f"Downloading web distribution...")
         download_url = f"https://github.com/hayden-fr/ComfyUI-Image-Browsing/releases/download/v{version}/dist.tar.gz"
         response = requests.get(download_url, stream=True)
         response.raise_for_status()
@@ -50,7 +60,7 @@ def download_web_distribution(version: str):
         if os.path.exists(web_path):
             shutil.rmtree(web_path)
 
-        logging.info("Extracting web distribution...")
+        print_info(f"Extracting web distribution...")
         with tarfile.open(temp_file, "r:gz") as tar:
             members = [
                 member for member in tar.getmembers() if member.name.startswith("web/")
@@ -58,10 +68,10 @@ def download_web_distribution(version: str):
             tar.extractall(path=config.extension_uri, members=members)
 
         os.remove(temp_file)
-        logging.info("Web distribution downloaded successfully.")
+        print_info("Web distribution downloaded successfully.")
     except requests.exceptions.RequestException as e:
-        logging.error(f"Failed to download web distribution: {e}")
+        print_error(f"Failed to download web distribution: {e}")
     except tarfile.TarError as e:
-        logging.error(f"Failed to extract web distribution: {e}")
+        print_error(f"Failed to extract web distribution: {e}")
     except Exception as e:
-        logging.error(f"An unexpected error occurred: {e}")
+        print_error(f"An unexpected error occurred: {e}")

@@ -1,6 +1,7 @@
 import os
-import logging
 import mimetypes
+
+from . import utils
 
 
 def get_file_mime_type(filename):
@@ -75,5 +76,5 @@ def get_image_data(filename: str, is_preview: bool):
 
             return img_byte_arr
     except Exception as e:
-        logging.error(str(e))
+        utils.print_error(str(e))
         return BytesIO()
