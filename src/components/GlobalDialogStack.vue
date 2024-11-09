@@ -21,6 +21,7 @@
         <div class="p-dialog-header-actions">
           <Button
             v-for="action in item.headerButtons"
+            :key="action.key"
             severity="secondary"
             :text="true"
             :rounded="true"

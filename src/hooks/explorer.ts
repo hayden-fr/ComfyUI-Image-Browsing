@@ -1,6 +1,7 @@
 import { request } from 'hooks/request'
 import { defineStore } from 'hooks/store'
 import { useToast } from 'hooks/toast'
+import { DirectoryItem, SelectOptions } from 'types/typings'
 import { computed, ref } from 'vue'
 
 interface DirectoryBreadcrumb extends DirectoryItem {

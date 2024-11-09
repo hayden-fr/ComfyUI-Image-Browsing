@@ -1,7 +1,7 @@
-type ContainerSize = { width: number; height: number }
-type ContainerPosition = { left: number; top: number }
+export type ContainerSize = { width: number; height: number }
+export type ContainerPosition = { left: number; top: number }
 
-interface DirectoryItem {
+export interface DirectoryItem {
   name: string
   type: 'folder' | 'image'
   size: number
@@ -10,7 +10,7 @@ interface DirectoryItem {
   updatedAt: number
 }
 
-interface SelectOptions {
+export interface SelectOptions {
   label: string
   value: any
   icon?: string

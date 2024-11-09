@@ -1,6 +1,14 @@
 name: ESLint
 
-on: [pull_request]
+on:
+  push:
+    paths:
+      - '**/*.vue'
+      - '**/*.ts'
+  pull_request:
+    paths:
+      - '**/*.vue'
+      - '**/*.ts'
 
 jobs:
   eslint:

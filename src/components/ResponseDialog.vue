@@ -79,6 +79,7 @@ import Dialog from 'primevue/dialog'
 import { clamp, isNil } from 'lodash'
 import { useConfig } from 'hooks/config'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { ContainerPosition, ContainerSize } from 'types/typings'
 
 interface Props {
   keepAlive?: boolean

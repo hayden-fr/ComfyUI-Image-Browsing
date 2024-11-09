@@ -21,8 +21,6 @@ export const useConfig = defineStore('config', () => {
     isMobile,
   }
 
-  useAddConfigSettings(config)
-
   return config
 })
 
@@ -32,22 +30,4 @@ declare module 'hooks/store' {
   interface StoreProvider {
     config: Config
   }
-}
-
-function useAddConfigSettings(config: Config) {
-  onMounted(() => {
-    // // API keys
-    // app.ui?.settings.addSetting({
-    //   id: 'ModelManager.APIKey.HuggingFace',
-    //   name: 'HuggingFace API Key',
-    //   type: 'text',
-    //   defaultValue: undefined,
-    // })
-    // app.ui?.settings.addSetting({
-    //   id: 'ModelManager.APIKey.Civitai',
-    //   name: 'Civitai API Key',
-    //   type: 'text',
-    //   defaultValue: undefined,
-    // })
-  })
 }
