@@ -64,9 +64,6 @@
                   </span>
                 </template>
               </ResponseSelect>
-              <span v-else class="flex h-full w-4 items-center">
-                <i class="pi pi-angle-right"></i>
-              </span>
             </div>
           </div>
         </div>
