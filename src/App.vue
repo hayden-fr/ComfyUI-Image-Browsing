@@ -7,14 +7,14 @@
 
 <script setup lang="ts">
 import DialogExplorer from 'components/DialogExplorer.vue'
-import GlobalToast from 'components/GlobalToast.vue'
-import GlobalLoading from 'components/GlobalLoading.vue'
 import GlobalDialogStack from 'components/GlobalDialogStack.vue'
+import GlobalLoading from 'components/GlobalLoading.vue'
+import GlobalToast from 'components/GlobalToast.vue'
+import { useStoreProvider } from 'hooks/store'
 import GlobalConfirm from 'primevue/confirmdialog'
 import { $el, app, ComfyButton } from 'scripts/comfyAPI'
 import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useStoreProvider } from 'hooks/store'
 
 const { t } = useI18n()
 const { dialog, explorer } = useStoreProvider()

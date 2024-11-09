@@ -60,9 +60,9 @@
 </template>
 
 <script setup lang="ts" generic="T">
-import { nextTick, onUnmounted, ref, watch } from 'vue'
-import { clamp, throttle } from 'lodash'
 import { defineResizeCallback } from 'hooks/resize'
+import { clamp, throttle } from 'lodash'
+import { nextTick, onUnmounted, ref, watch } from 'vue'
 
 interface ScrollAreaProps {
   items?: T[][]
