@@ -26,29 +26,27 @@
 
         <div
           :class="[
-            'flex h-10 flex-1 basis-10 items-center gap-1 rounded-lg px-4 py-1',
+            'flex h-10 flex-1 basis-10 items-center rounded-lg px-2 py-1',
             'bg-gray-100 dark:bg-gray-900',
             'overflow-hidden *:select-none *:opacity-70',
           ]"
         >
-          <div class="flex h-full items-center gap-1">
-            <span class="h-4 w-4">
+          <div class="flex h-full items-center">
+            <span class="flex h-full items-center justify-center px-2">
               <i class="pi pi-desktop"></i>
             </span>
-            <span class="h-4 w-4">
+            <span class="flex aspect-square h-full items-center justify-center">
               <i class="pi pi-angle-right"></i>
             </span>
           </div>
-          <div
-            class="flex h-full items-center justify-end gap-1 overflow-hidden"
-          >
+          <div class="flex h-full items-center justify-end overflow-hidden">
             <div
               v-for="(item, index) in breadcrumb"
               :key="item.fullname"
-              class="flex h-full items-center gap-1 rounded hover:bg-gray-300 dark:hover:bg-gray-800"
+              class="flex h-full items-center rounded border border-solid border-transparent hover:border-gray-400 dark:hover:border-gray-700"
             >
               <span
-                class="flex h-full items-center whitespace-nowrap px-1"
+                class="flex h-full items-center whitespace-nowrap px-2 hover:bg-gray-400 dark:hover:bg-gray-700"
                 @click="entryFolder(item, index)"
               >
                 {{ item.name }}
@@ -58,12 +56,17 @@
                 :model-value="item.fullname"
                 :items="item.children"
               >
-                <template #target="{ toggle }">
+                <template #target="{ toggle, overlayVisible }">
                   <span
-                    class="flex h-full w-4 items-center border-0 border-l-2 border-solid border-gray-100 dark:border-gray-900"
+                    class="flex aspect-square h-full items-center justify-center hover:bg-gray-400 dark:hover:bg-gray-700"
                     @click="toggle"
                   >
-                    <i class="pi pi-angle-right"></i>
+                    <i
+                      :class="[
+                        'pi pi-angle-right transition-all',
+                        overlayVisible ? '[transform:rotate(90deg)]' : '',
+                      ]"
+                    ></i>
                   </span>
                 </template>
               </ResponseSelect>
@@ -86,7 +89,7 @@
             <div
               v-for="rowItem in item"
               :key="rowItem.name"
-              class="flex h-32 w-32 flex-col items-center justify-center gap-1 overflow-hidden whitespace-nowrap rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700"
+              class="flex h-32 w-32 flex-col items-center justify-center gap-1 overflow-hidden whitespace-nowrap rounded-lg hover:bg-gray-400 dark:hover:bg-gray-700"
             >
               <div class="h-24 w-24 overflow-hidden rounded-lg">
                 <div
