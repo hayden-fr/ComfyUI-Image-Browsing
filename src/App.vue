@@ -41,7 +41,7 @@ onMounted(() => {
 
   app.menu?.settingsGroup.append(
     new ComfyButton({
-      icon: 'folder-search',
+      icon: 'folder-image',
       tooltip: t('openOutputExplorer'),
       content: t('outputExplorer'),
       action: openExplorerDialog,

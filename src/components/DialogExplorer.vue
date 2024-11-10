@@ -45,10 +45,10 @@
             <div
               v-for="(item, index) in breadcrumb"
               :key="item.fullname"
-              class="flex h-full items-center gap-1"
+              class="flex h-full items-center gap-1 rounded hover:bg-gray-300 dark:hover:bg-gray-800"
             >
               <span
-                class="flex h-full items-center whitespace-nowrap rounded px-1 hover:bg-gray-300 dark:hover:bg-gray-800"
+                class="flex h-full items-center whitespace-nowrap px-1"
                 @click="entryFolder(item, index)"
               >
                 {{ item.name }}
@@ -59,7 +59,10 @@
                 :items="item.children"
               >
                 <template #target="{ toggle }">
-                  <span class="flex h-full w-4 items-center" @click="toggle">
+                  <span
+                    class="flex h-full w-4 items-center border-0 border-l-2 border-solid border-gray-100 dark:border-gray-900"
+                    @click="toggle"
+                  >
                     <i class="pi pi-angle-right"></i>
                   </span>
                 </template>
@@ -83,7 +86,7 @@
             <div
               v-for="rowItem in item"
               :key="rowItem.name"
-              class="flex h-32 w-32 flex-col items-center gap-1 overflow-hidden whitespace-nowrap"
+              class="flex h-32 w-32 flex-col items-center justify-center gap-1 overflow-hidden whitespace-nowrap rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700"
             >
               <div class="h-24 w-24 overflow-hidden rounded-lg">
                 <div
