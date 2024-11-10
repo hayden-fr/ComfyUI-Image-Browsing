@@ -3,10 +3,16 @@ name: ESLint
 on:
   push:
     paths:
-      - '**/*.{js,ts,tsx,vue}'
+      - '**/*.vue'
+      - '**/*.ts'
+      - '**/*.tsx'
+      - '**/*.js'
   pull_request:
     paths:
-      - '**/*.{js,ts,tsx,vue}'
+      - '**/*.vue'
+      - '**/*.ts'
+      - '**/*.tsx'
+      - '**/*.js'
 
 jobs:
   eslint:
