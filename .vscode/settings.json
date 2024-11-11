@@ -7,10 +7,5 @@
     "strings": "on"
   },
   "css.lint.unknownAtRules": "ignore",
-  "cSpell.words": [
-    "fullname",
-    "primevue",
-    "inputtext",
-    "inputicon",
-  ]
+  "cSpell.words": ["fullname", "primevue", "inputtext"]
 }
