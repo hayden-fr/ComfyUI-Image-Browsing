@@ -10,7 +10,7 @@ interface DirectoryBreadcrumb extends DirectoryItem {
   children: SelectOptions[]
 }
 
-export const useExplorer = defineStore('explorer', () => {
+export const useExplorer = defineStore('explorer', (store) => {
   const { toast } = useToast()
   const { t } = useI18n()
 
@@ -89,6 +89,8 @@ export const useExplorer = defineStore('explorer', () => {
     item.onDbClick = () => {
       if (item.type === 'folder') {
         entryFolder(item, breadcrumb.value.length)
+      } else {
+        store.preview.open(item)
       }
     }
 

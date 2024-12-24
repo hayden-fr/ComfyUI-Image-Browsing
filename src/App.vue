@@ -3,12 +3,14 @@
   <GlobalConfirm></GlobalConfirm>
   <GlobalLoading></GlobalLoading>
   <GlobalDialogStack></GlobalDialogStack>
+  <GlobalPreview></GlobalPreview>
 </template>
 
 <script setup lang="ts">
 import DialogExplorer from 'components/DialogExplorer.vue'
 import GlobalDialogStack from 'components/GlobalDialogStack.vue'
 import GlobalLoading from 'components/GlobalLoading.vue'
+import GlobalPreview from 'components/GlobalPreview.vue'
 import GlobalToast from 'components/GlobalToast.vue'
 import { useStoreProvider } from 'hooks/store'
 import GlobalConfirm from 'primevue/confirmdialog'
