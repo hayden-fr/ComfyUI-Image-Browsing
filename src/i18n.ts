@@ -5,6 +5,10 @@ const messages = {
     outputExplorer: 'Output Explorer',
     openOutputExplorer: 'Open Output Explorer',
     searchInFolder: 'Search in {0}',
+    open: 'View',
+    openInNewTab: 'View in new tab',
+    save: 'Save',
+    download: 'Archive & Download',
   },
   zh: {
     outputExplorer: 'Output Explorer',

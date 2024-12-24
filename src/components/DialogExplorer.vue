@@ -1,9 +1,11 @@
 <template>
   <div
-    class="flex h-full w-full flex-col gap-4 @container"
+    class="@container flex h-full w-full flex-col gap-4"
     v-resize="onContainerResize"
+    @click="nonContextMenu"
+    @contextmenu.prevent="nonContextMenu"
   >
-    <div class="flex flex-col gap-4 px-4 @xl:flex-row">
+    <div class="@xl:flex-row flex flex-col gap-4 px-4">
       <div class="flex flex-1 gap-1 overflow-hidden">
         <Button
           class="shrink-0"
@@ -89,52 +91,56 @@
             <div
               v-for="rowItem in item"
               :key="rowItem.name"
-              class="flex h-32 w-32 flex-col items-center justify-center gap-1 overflow-hidden whitespace-nowrap rounded-lg hover:bg-gray-400 dark:hover:bg-gray-700"
+              class="h-32 w-32 px-1 pb-1"
             >
-              <div class="h-24 w-24 overflow-hidden rounded-lg">
-                <div
-                  v-if="rowItem.type === 'folder'"
-                  class="h-full w-full"
-                  @dblclick.stop="entryFolder(rowItem, breadcrumb.length)"
-                  @touchstart.stop="entryFolder(rowItem, breadcrumb.length)"
-                >
-                  <svg
-                    t="1730360536641"
-                    class="icon"
-                    viewBox="0 0 1024 1024"
-                    version="1.1"
-                    xmlns="http://www.w3.org/2000/svg"
-                    p-id="5617"
-                    width="100%"
-                    height="100%"
-                  >
-                    <path
-                      d="M853.333333 256H469.333333l-85.333333-85.333333H170.666667c-46.933333 0-85.333333 38.4-85.333334 85.333333v170.666667h853.333334v-85.333334c0-46.933333-38.4-85.333333-85.333334-85.333333z"
-                      fill="#FFA000"
-                      p-id="5618"
-                    ></path>
-                    <path
-                      d="M853.333333 256H170.666667c-46.933333 0-85.333333 38.4-85.333334 85.333333v426.666667c0 46.933333 38.4 85.333333 85.333334 85.333333h682.666666c46.933333 0 85.333333-38.4 85.333334-85.333333V341.333333c0-46.933333-38.4-85.333333-85.333334-85.333333z"
-                      fill="#FFCA28"
-                      p-id="5619"
-                    ></path>
-                  </svg>
+              <div
+                :class="[
+                  'flex h-full w-full flex-col items-center justify-center gap-1 overflow-hidden whitespace-nowrap rounded-lg',
+                  'hover:bg-gray-300 dark:hover:bg-gray-800',
+                  selectedItemsName.includes(rowItem.name)
+                    ? 'bg-gray-300 dark:bg-gray-800'
+                    : '',
+                ]"
+                @click.stop="rowItem.onClick"
+                @dblclick.stop="rowItem.onDbClick"
+                @contextmenu.stop="rowItem.onContextMenu"
+              >
+                <div class="h-24 w-24 overflow-hidden rounded-lg">
+                  <div v-if="rowItem.type === 'folder'" class="h-full w-full">
+                    <svg
+                      t="1730360536641"
+                      class="icon"
+                      viewBox="0 0 1024 1024"
+                      version="1.1"
+                      xmlns="http://www.w3.org/2000/svg"
+                      p-id="5617"
+                      width="100%"
+                      height="100%"
+                    >
+                      <path
+                        d="M853.333333 256H469.333333l-85.333333-85.333333H170.666667c-46.933333 0-85.333333 38.4-85.333334 85.333333v170.666667h853.333334v-85.333334c0-46.933333-38.4-85.333333-85.333334-85.333333z"
+                        fill="#FFA000"
+                        p-id="5618"
+                      ></path>
+                      <path
+                        d="M853.333333 256H170.666667c-46.933333 0-85.333333 38.4-85.333334 85.333333v426.666667c0 46.933333 38.4 85.333333 85.333334 85.333333h682.666666c46.933333 0 85.333333-38.4 85.333334-85.333333V341.333333c0-46.933333-38.4-85.333333-85.333334-85.333333z"
+                        fill="#FFCA28"
+                        p-id="5619"
+                      ></path>
+                    </svg>
+                  </div>
+                  <span v-else-if="rowItem.type === 'image'">
+                    <img
+                      class="h-full w-full object-contain"
+                      :src="`/image-browsing${rowItem.fullname}?preview=true`"
+                    />
+                  </span>
                 </div>
-                <a
-                  v-else-if="rowItem.type === 'image'"
-                  :href="`/image-browsing${rowItem.fullname}`"
-                  target="_blank"
-                >
-                  <img
-                    class="h-full w-full object-contain"
-                    :src="`/image-browsing${rowItem.fullname}?preview=true`"
-                  />
-                </a>
-              </div>
-              <div class="flex w-full justify-center overflow-hidden px-1">
-                <span class="overflow-hidden text-ellipsis text-xs">
-                  {{ rowItem.name }}
-                </span>
+                <div class="flex w-full justify-center overflow-hidden px-1">
+                  <span class="overflow-hidden text-ellipsis text-xs">
+                    {{ rowItem.name }}
+                  </span>
+                </div>
               </div>
             </div>
             <div class="col-span-full"></div>
@@ -162,6 +168,8 @@
         <div class="pt-20 text-center">No Data</div>
       </div>
     </div>
+
+    <ContextMenu ref="menu" :model="contextItems"></ContextMenu>
   </div>
 </template>
 
@@ -173,10 +181,20 @@ import { useExplorer } from 'hooks/explorer'
 import { defineResizeCallback } from 'hooks/resize'
 import { chunk } from 'lodash'
 import Button from 'primevue/button'
+import ContextMenu from 'primevue/contextmenu'
 import { computed, ref } from 'vue'
 
-const { loading, breadcrumb, items, refresh, entryFolder, goBackParentFolder } =
-  useExplorer()
+const {
+  loading,
+  breadcrumb,
+  items,
+  selectedItems,
+  menuRef: menu,
+  contextItems,
+  refresh,
+  entryFolder,
+  goBackParentFolder,
+} = useExplorer()
 
 const searchContent = ref('')
 
@@ -201,4 +219,13 @@ const onContainerResize = defineResizeCallback((entries) => {
 const currentFolderName = computed(() => {
   return breadcrumb.value[breadcrumb.value.length - 1].name
 })
+
+const selectedItemsName = computed(() => {
+  return selectedItems.value.map((item) => item.name)
+})
+
+const nonContextMenu = ($event: MouseEvent) => {
+  selectedItems.value = []
+  menu.value.hide($event)
+}
 </script>
