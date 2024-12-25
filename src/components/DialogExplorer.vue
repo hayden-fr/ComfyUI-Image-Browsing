@@ -154,7 +154,7 @@
 
       <div
         v-show="loading"
-        class="absolute left-0 top-0 h-full w-full bg-white opacity-70"
+        class="absolute left-0 top-0 h-full w-full bg-black/10"
       >
         <div class="flex h-full w-full flex-col items-center justify-center">
           <div class="pi pi-spin pi-spinner"></div>
