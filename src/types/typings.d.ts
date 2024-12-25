@@ -8,6 +8,9 @@ export interface DirectoryItem {
   fullname: string
   createdAt: number
   updatedAt: number
+  onClick?: ($event: MouseEvent) => void
+  onDbClick?: ($event: MouseEvent) => void
+  onContextMenu?: ($event: MouseEvent) => void
 }
 
 export interface SelectOptions {

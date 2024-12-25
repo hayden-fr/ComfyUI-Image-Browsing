@@ -18,6 +18,10 @@ def print_error(msg, *args, **kwargs):
     logging.debug(traceback.format_exc())
 
 
+def print_debug(msg, *args, **kwargs):
+    logging.debug(f"[{config.extension_tag}] {msg}", *args, **kwargs)
+
+
 def get_current_version():
     try:
         pyproject_path = os.path.join(config.extension_uri, "pyproject.toml")
@@ -62,9 +66,7 @@ def download_web_distribution(version: str):
 
         print_info(f"Extracting web distribution...")
         with tarfile.open(temp_file, "r:gz") as tar:
-            members = [
-                member for member in tar.getmembers() if member.name.startswith("web/")
-            ]
+            members = [member for member in tar.getmembers() if member.name.startswith("web/")]
             tar.extractall(path=config.extension_uri, members=members)
 
         os.remove(temp_file)

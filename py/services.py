@@ -1,6 +1,7 @@
 import os
 import mimetypes
 
+from . import config
 from . import utils
 
 
@@ -78,3 +79,83 @@ def get_image_data(filename: str, is_preview: bool):
     except Exception as e:
         utils.print_error(str(e))
         return BytesIO()
+
+
+import zipfile
+import datetime
+
+
+tmp_dir = os.path.join(config.extension_uri, "tmp")
+
+
+async def package_file(root_dir: str, file_list: list[str]):
+    zip_filename = f"{datetime.datetime.now().strftime("%Y%m%dT%H%M%SZ")}.zip"
+
+    if not os.path.exists(tmp_dir):
+        os.makedirs(tmp_dir)
+
+    zip_temp_file = os.path.join(tmp_dir, zip_filename)
+    real_root_dir = root_dir.replace("/output", config.output_uri)
+
+    utils.print_debug(f"Creating zip file: {zip_temp_file}")
+    utils.print_debug(f"Root directory: {root_dir}")
+    utils.print_debug(f"Real root directory: {real_root_dir}")
+
+    with zipfile.ZipFile(zip_temp_file, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        for file_path in file_list:
+            real_path = file_path.replace("/output", config.output_uri)
+            filename = os.path.relpath(file_path, root_dir)
+
+            if os.path.isfile(real_path):
+                utils.print_debug(f"Adding file: {filename}")
+                zip_file.write(real_path, filename)
+            elif os.path.isdir(real_path):
+                utils.print_debug(f"Checking sub directory: {filename}")
+                for root, _, files in os.walk(real_path):
+                    utils.print_debug(f"Find {root} files: {files}")
+                    for file in files:
+                        sub_real_path = os.path.join(root, file)
+                        sub_dir = os.path.relpath(root, os.path.join(real_root_dir, filename))
+                        sub_filename = os.path.join(filename, sub_dir, file)
+                        utils.print_debug(f"Adding file: {sub_filename}")
+                        zip_file.write(sub_real_path, sub_filename)
+            else:
+                utils.print_error(f"File not found: {real_path}")
+    return zip_filename
+
+
+async def get_temp_file_path(filename: str):
+    return os.path.join(config.extension_uri, "tmp", filename)
+
+
+import asyncio
+
+
+class TemporaryFile:
+    def __init__(self, file_path):
+        self.file_path = file_path
+        self.file = None
+        self.loop = asyncio.get_event_loop()
+
+    async def __aenter__(self):
+        def open_file():
+            self.file = open(self.file_path, "rb")
+            return self.file
+
+        self.file = await self.loop.run_in_executor(None, open_file)
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self.file:
+            self.file.close()
+        os.remove(self.file_path)
+
+    async def read(self, size=-1):
+        def sync_read():
+            return self.file.read(size)
+
+        return await self.loop.run_in_executor(None, sync_read)
+
+
+def open_tmp_file(filepath: str):
+    return TemporaryFile(filepath)
