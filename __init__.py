@@ -41,6 +41,46 @@ async def scan_output_folder(request):
     return web.Response(status=404)
 
 
+@routes.post("/image-browsing/archive")
+async def archive_specific_files(request):
+    data = await request.json()
+    file_list = data.get("file_list", [])
+    if not file_list or len(file_list) == 0:
+        return web.json_response({"success": False, "error": "No files provided"}, status=400)
+
+    root_dir = data.get("uri", "/output/")
+    zip_filename = await services.package_file(root_dir, file_list)
+    return web.json_response({"success": True, "data": zip_filename})
+
+
+@routes.get("/image-browsing/archive/{tmp_name}")
+async def download_tmp_file(request):
+    tmp_name = request.match_info.get("tmp_name", None)
+    if not tmp_name:
+        return web.Response(status=404)
+
+    temp_file_path = await services.get_temp_file_path(tmp_name)
+    if not os.path.isfile(temp_file_path):
+        return web.Response(status=404)
+
+    async with services.open_tmp_file(temp_file_path) as f:
+        response = web.StreamResponse()
+        response.headers["Content-Disposition"] = f'attachment; filename="{tmp_name}"'
+        response.headers["Content-Type"] = "application/x-zip-compressed"
+
+        await response.prepare(request)
+
+        chunk_size = 256 * 1024
+
+        while True:
+            chunk = await f.read(chunk_size)
+            if not chunk:
+                break
+            await response.write(chunk)
+        await response.write_eof()
+        return response
+
+
 WEB_DIRECTORY = "web"
 NODE_CLASS_MAPPINGS = {}
 __all__ = ["NODE_CLASS_MAPPINGS"]

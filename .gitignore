@@ -192,6 +192,7 @@ node_modules/
 
 # dist
 web/
+tmp/
 
 # config
 config/

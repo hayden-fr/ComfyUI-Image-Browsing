@@ -146,7 +146,31 @@ export const useExplorer = defineStore('explorer', (store) => {
           label: t('download'),
           icon: 'pi pi-download',
           command: () => {
-            // TODO Send archive request and download
+            loading.value = true
+            request('/archive', {
+              method: 'POST',
+              body: JSON.stringify({
+                uri: currentPath.value,
+                file_list: selectedItems.value.map((c) => c.fullname),
+              }),
+            })
+              .then((tmp_name) => {
+                const link = document.createElement('a')
+                link.href = `/image-browsing/archive/${tmp_name}`
+                link.download = tmp_name
+                link.click()
+              })
+              .catch((err) => {
+                toast.add({
+                  severity: 'error',
+                  summary: 'Error',
+                  detail: err.message || 'Failed to download.',
+                  life: 15000,
+                })
+              })
+              .finally(() => {
+                loading.value = false
+              })
           },
         })
       }
