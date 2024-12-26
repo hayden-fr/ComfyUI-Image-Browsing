@@ -48,6 +48,19 @@ def scan_directory_items(directory: str):
         return []
 
 
+def recursive_delete_files(file_list: list[str]):
+    for file_path in file_list:
+        real_path = file_path.replace("/output", config.output_uri)
+
+        if os.path.isfile(real_path):
+            os.remove(real_path)
+        elif os.path.isdir(real_path):
+            for root, _, files in os.walk(real_path):
+                for file in files:
+                    os.remove(os.path.join(root, file))
+            os.rmdir(real_path)
+
+
 from PIL import Image
 from io import BytesIO
 

@@ -9,6 +9,9 @@ const messages = {
     openInNewTab: 'View in new tab',
     save: 'Save',
     download: 'Archive & Download',
+    delete: 'Delete',
+    deleteAsk: 'Confirm delete {0}?',
+    selectedItems: 'Selected Items',
   },
   zh: {
     outputExplorer: 'Output Explorer',
