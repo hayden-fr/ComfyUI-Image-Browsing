@@ -49,6 +49,32 @@ def scan_directory_items(directory: str):
         return []
 
 
+async def create_file_or_folder(pathname: str, reader):
+    real_pathname = pathname.replace("/output", config.output_uri)
+
+    while True:
+        part = await reader.next()
+        if part is None:
+            break
+
+        name = part.name
+
+        if name == "files":
+            filename = part.filename
+            filepath = f"{real_pathname}{filename}"
+            if os.path.isfile(filepath):
+                filepath_0 = os.path.splitext(filepath)[0]
+                filepath_1 = os.path.splitext(filepath)[1]
+                filepath = f"{filepath_0}(1){filepath_1}"
+            utils.print_debug(f"Creating file: {filepath}")
+            with open(filepath, "wb") as f:
+                while True:
+                    chunk = await part.read_chunk()
+                    if not chunk:
+                        break
+                    f.write(chunk)
+
+
 def rename_file(pathname: str, filename: str):
     real_pathname = pathname.replace("/output", config.output_uri)
     real_filename = filename.replace("/output", config.output_uri)

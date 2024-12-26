@@ -84,7 +84,10 @@
       ></ResponseInput>
     </div>
 
-    <div class="relative flex-1 select-none overflow-hidden">
+    <div
+      class="relative flex-1 select-none overflow-hidden"
+      @contextmenu.stop="folderContext"
+    >
       <ResponseScroll :items="folderItems" :item-size="128" class="h-full">
         <template #item="{ item }">
           <div class="grid grid-cols-[repeat(auto-fit,8rem)] justify-center">
@@ -203,6 +206,7 @@ const {
   contextItems,
   refresh,
   entryFolder,
+  folderContext,
   goBackParentFolder,
 } = useExplorer()
 

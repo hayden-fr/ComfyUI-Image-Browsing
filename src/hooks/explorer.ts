@@ -307,6 +307,53 @@ export const useExplorer = defineStore('explorer', (store) => {
     }
   }
 
+  const folderContext = ($event: MouseEvent) => {
+    selectedItems.value = []
+    const contextMenu: MenuItem[] = [
+      {
+        label: t('uploadFile'),
+        icon: 'pi pi-upload',
+        command: () => {
+          const fileInput = document.createElement('input')
+          fileInput.type = 'file'
+          fileInput.multiple = true
+          fileInput.accept = 'image/*'
+          fileInput.onchange = (e) => {
+            const files = (e.target as HTMLInputElement).files
+            if (!files) {
+              return
+            }
+            const formData = new FormData()
+            for (let i = 0; i < files.length; i++) {
+              formData.append('files', files[i])
+            }
+            loading.value = true
+            request(currentPath.value, {
+              method: 'POST',
+              body: formData,
+            })
+              .then(() => refresh())
+              .catch((err) => {
+                toast.add({
+                  severity: 'error',
+                  summary: 'Error',
+                  detail: err.message || 'Failed to upload files.',
+                  life: 5000,
+                })
+              })
+              .finally(() => {
+                loading.value = false
+              })
+          }
+          fileInput.click()
+        },
+      },
+    ]
+
+    contextItems.value = contextMenu
+    menuRef.value.show($event)
+  }
+
   const refresh = async () => {
     loading.value = true
     items.value = []
@@ -368,6 +415,7 @@ export const useExplorer = defineStore('explorer', (store) => {
     refresh: refresh,
     deleteItems: deleteItems,
     entryFolder: entryFolder,
+    folderContext: folderContext,
     goBackParentFolder: goBackParentFolder,
     clearStatus: clearStatus,
   }
