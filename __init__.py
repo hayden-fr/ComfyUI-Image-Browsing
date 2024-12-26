@@ -41,6 +41,16 @@ async def scan_output_folder(request):
     return web.Response(status=404)
 
 
+@routes.post("/image-browsing/output/{pathname:.*}")
+async def create_file_or_folder(request):
+    reader = await request.multipart()
+
+    pathname = request.match_info.get("pathname", None)
+    pathname = f"/output/{pathname}"
+    await services.create_file_or_folder(pathname, reader)
+    return web.json_response({"success": True})
+
+
 @routes.put("/image-browsing/output/{pathname:.*}")
 async def update_output_file(request):
     data = await request.json()

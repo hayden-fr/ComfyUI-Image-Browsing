@@ -12,6 +12,8 @@ const messages = {
     delete: 'Delete',
     deleteAsk: 'Confirm delete {0}?',
     selectedItems: 'Selected Items',
+    addFolder: 'Add folder',
+    uploadFile: 'Upload file',
   },
   zh: {
     outputExplorer: 'Output Explorer',
