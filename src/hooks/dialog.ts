@@ -22,6 +22,7 @@ interface DialogItem {
   maxWidth?: number
   minHeight?: number
   maxHeight?: number
+  onClose?: (instance: DialogItem) => void | Promise<void>
 }
 
 export const useDialog = defineStore('dialog', () => {
@@ -49,8 +50,9 @@ export const useDialog = defineStore('dialog', () => {
     }
   }
 
-  const close = (dialog: { key: string }) => {
+  const close = async (dialog: { key: string }) => {
     const item = stack.value.find((item) => item.key === dialog.key)
+    await item?.onClose?.(item)
     if (item?.keepAlive) {
       item.visible = false
     } else {

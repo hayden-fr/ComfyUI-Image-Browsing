@@ -11,7 +11,7 @@ interface DirectoryBreadcrumb extends DirectoryItem {
 }
 
 export const useExplorer = defineStore('explorer', (store) => {
-  const { toast } = useToast()
+  const { toast, confirm } = useToast()
   const { t } = useI18n()
 
   const loading = ref(false)
@@ -53,6 +53,41 @@ export const useExplorer = defineStore('explorer', (store) => {
   const goBackParentFolder = async () => {
     breadcrumb.value.pop()
     await refresh()
+  }
+
+  const deleteItems = () => {
+    confirm.require({
+      message: t('deleteAsk', [t('selectedItems').toLowerCase()]),
+      header: 'Danger',
+      icon: 'pi pi-info-circle',
+      rejectProps: {
+        label: t('cancel'),
+        severity: 'secondary',
+        outlined: true,
+      },
+      acceptProps: {
+        label: t('delete'),
+        severity: 'danger',
+      },
+      accept: () => {
+        request(`/delete`, {
+          method: 'DELETE',
+          body: JSON.stringify({
+            uri: currentPath.value,
+            file_list: selectedItems.value.map((c) => c.fullname),
+          }),
+        }).then(() => {
+          toast.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Deleted successfully.',
+            life: 2000,
+          })
+          return refresh()
+        })
+      },
+      reject: () => {},
+    })
   }
 
   const bindEvents = (item: DirectoryItem, index: number) => {
@@ -141,6 +176,12 @@ export const useExplorer = defineStore('explorer', (store) => {
         )
       }
 
+      contextMenu.push({
+        label: t('delete'),
+        icon: 'pi pi-trash',
+        command: deleteItems,
+      })
+
       if (selectedItems.value.length > 1 || item.type === 'folder') {
         contextMenu.push({
           label: t('download'),
@@ -226,6 +267,11 @@ export const useExplorer = defineStore('explorer', (store) => {
       })
   }
 
+  const clearStatus = () => {
+    selectedItems.value = []
+    currentSelected.value = undefined
+  }
+
   return {
     loading: loading,
     items: items,
@@ -234,8 +280,10 @@ export const useExplorer = defineStore('explorer', (store) => {
     contextItems: contextItems,
     selectedItems: selectedItems,
     refresh: refresh,
+    deleteItems: deleteItems,
     entryFolder: entryFolder,
     goBackParentFolder: goBackParentFolder,
+    clearStatus: clearStatus,
   }
 })
 

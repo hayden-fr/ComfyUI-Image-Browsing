@@ -15,11 +15,19 @@ import GlobalToast from 'components/GlobalToast.vue'
 import { useStoreProvider } from 'hooks/store'
 import GlobalConfirm from 'primevue/confirmdialog'
 import { $el, app, ComfyButton } from 'scripts/comfyAPI'
-import { onMounted } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 const { dialog, explorer } = useStoreProvider()
+
+const deleteListener = ($event: KeyboardEvent) => {
+  if ($event.key === 'Delete') {
+    if (explorer.selectedItems.value.length > 0) {
+      explorer.deleteItems()
+    }
+  }
+}
 
 onMounted(() => {
   const openExplorerDialog = () => {
@@ -30,6 +38,9 @@ onMounted(() => {
       title: t('outputExplorer'),
       content: DialogExplorer,
       keepAlive: true,
+      onClose: () => {
+        explorer.clearStatus()
+      },
     })
   }
 
@@ -49,5 +60,11 @@ onMounted(() => {
       action: openExplorerDialog,
     }),
   )
+
+  document.addEventListener('keyup', deleteListener)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keyup', deleteListener)
 })
 </script>

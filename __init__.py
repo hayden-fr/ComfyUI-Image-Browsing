@@ -41,6 +41,14 @@ async def scan_output_folder(request):
     return web.Response(status=404)
 
 
+@routes.delete("/image-browsing/delete")
+async def delete_files(request):
+    data = await request.json()
+    file_list = data.get("file_list", [])
+    services.recursive_delete_files(file_list)
+    return web.json_response({"success": True})
+
+
 @routes.post("/image-browsing/archive")
 async def archive_specific_files(request):
     data = await request.json()
