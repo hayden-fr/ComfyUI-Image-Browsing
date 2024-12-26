@@ -137,7 +137,17 @@
                   </span>
                 </div>
                 <div class="flex w-full justify-center overflow-hidden px-1">
-                  <span class="overflow-hidden text-ellipsis text-xs">
+                  <input
+                    v-if="typeof rowItem.editName === 'string'"
+                    v-focus
+                    class="w-full border-none text-xs outline-none"
+                    type="text"
+                    v-model="rowItem.editName"
+                    @focus="rowItem.onFocus"
+                    @blur="rowItem.onBlur"
+                    @keydown.enter="enterKeyDown"
+                  />
+                  <span v-else class="overflow-hidden text-ellipsis text-xs">
                     {{ rowItem.name }}
                   </span>
                 </div>
@@ -227,5 +237,14 @@ const selectedItemsName = computed(() => {
 const nonContextMenu = ($event: MouseEvent) => {
   selectedItems.value = []
   menu.value.hide($event)
+}
+
+const vFocus = {
+  mounted: (el: HTMLInputElement) => el.focus(),
+}
+
+const enterKeyDown = ($event: KeyboardEvent) => {
+  const target = $event.target as HTMLInputElement
+  target.blur()
 }
 </script>

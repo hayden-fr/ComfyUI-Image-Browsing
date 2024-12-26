@@ -1,4 +1,5 @@
 import os
+import shutil
 import mimetypes
 
 from . import config
@@ -46,6 +47,12 @@ def scan_directory_items(directory: str):
         return output
     except:
         return []
+
+
+def rename_file(pathname: str, filename: str):
+    real_pathname = pathname.replace("/output", config.output_uri)
+    real_filename = filename.replace("/output", config.output_uri)
+    shutil.move(real_pathname, real_filename)
 
 
 def recursive_delete_files(file_list: list[str]):
