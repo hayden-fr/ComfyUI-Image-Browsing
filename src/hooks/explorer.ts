@@ -129,6 +129,84 @@ export const useExplorer = defineStore('explorer', (store) => {
       }
     }
 
+    item.onFocus = () => {
+      const cancelEdit = ($event: KeyboardEvent) => {
+        if ($event.key === 'Escape') {
+          item.editName = undefined
+          document.removeEventListener('keyup', cancelEdit)
+        }
+      }
+
+      document.addEventListener('keyup', cancelEdit)
+    }
+
+    item.onBlur = ($event: MouseEvent) => {
+      const name = item.editName?.trim() ?? ''
+
+      const refocusEdit = () => {
+        const target = $event.target as HTMLInputElement
+        target.focus()
+      }
+
+      if (name === '') {
+        item.editName = undefined
+        return false
+      }
+
+      if (name.endsWith(' ') || name.endsWith('.')) {
+        toast.add({
+          severity: 'warn',
+          summary: 'Warning',
+          detail: 'Name cannot end with space or period.',
+          life: 2000,
+        })
+        refocusEdit()
+        return false
+      }
+
+      const windowsInvalidChars = /[<>:"/\\|?*]/
+      const linuxInvalidChars = /[/\0]/
+
+      if (windowsInvalidChars.test(name) || linuxInvalidChars.test(name)) {
+        toast.add({
+          severity: 'warn',
+          summary: 'Warning',
+          detail: 'Name contains illegal characters: <>:"/\\|?*',
+          life: 2000,
+        })
+        refocusEdit()
+        return false
+      }
+
+      const windowsReservedNames = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/i
+      if (windowsReservedNames.test(name.split('.')[0])) {
+        toast.add({
+          severity: 'warn',
+          summary: 'Warning',
+          detail: 'Name cannot be reserved name.',
+          life: 2000,
+        })
+        refocusEdit()
+        return false
+      }
+
+      const filename = `${currentPath.value}${name}`
+      if (filename === item.fullname) {
+        item.editName = undefined
+        return false
+      }
+      request(item.fullname, {
+        method: 'PUT',
+        body: JSON.stringify({
+          filename: filename,
+        }),
+      }).then(() => {
+        item.name = name
+        item.fullname = filename
+        item.editName = undefined
+      })
+    }
+
     item.onContextMenu = ($event) => {
       const isSelected = selectedItems.value.some((c) => c.name === item.name)
 
@@ -175,6 +253,14 @@ export const useExplorer = defineStore('explorer', (store) => {
           },
         )
       }
+
+      contextMenu.push({
+        label: t('rename'),
+        icon: 'pi pi-file-edit',
+        command: () => {
+          item.editName = item.name
+        },
+      })
 
       contextMenu.push({
         label: t('delete'),

@@ -41,6 +41,15 @@ async def scan_output_folder(request):
     return web.Response(status=404)
 
 
+@routes.put("/image-browsing/output/{pathname:.*}")
+async def update_output_file(request):
+    data = await request.json()
+    pathname = request.match_info.get("pathname", None)
+    filename = data.get("filename", None)
+    services.rename_file(f"/output/{pathname}", filename)
+    return web.json_response({"success": True})
+
+
 @routes.delete("/image-browsing/delete")
 async def delete_files(request):
     data = await request.json()

@@ -21,10 +21,17 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const { dialog, explorer } = useStoreProvider()
 
-const deleteListener = ($event: KeyboardEvent) => {
+const keyboardListener = ($event: KeyboardEvent) => {
   if ($event.key === 'Delete') {
     if (explorer.selectedItems.value.length > 0) {
       explorer.deleteItems()
+    }
+  }
+
+  if ($event.key === 'F2') {
+    if (explorer.selectedItems.value.length === 1) {
+      const item = explorer.selectedItems.value[0]
+      item.editName = item.name
     }
   }
 }
@@ -61,10 +68,10 @@ onMounted(() => {
     }),
   )
 
-  document.addEventListener('keyup', deleteListener)
+  document.addEventListener('keyup', keyboardListener)
 })
 
 onUnmounted(() => {
-  document.removeEventListener('keyup', deleteListener)
+  document.removeEventListener('keyup', keyboardListener)
 })
 </script>
