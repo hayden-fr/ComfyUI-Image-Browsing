@@ -74,6 +74,12 @@ async def create_file_or_folder(pathname: str, reader):
                         break
                     f.write(chunk)
 
+        if name == "folders":
+            filename = await part.text()
+            filepath = f"{real_pathname}{filename}"
+            utils.print_debug(f"Create folder: {filepath}")
+            os.mkdir(filepath)
+
 
 def rename_file(pathname: str, filename: str):
     real_pathname = pathname.replace("/output", config.output_uri)

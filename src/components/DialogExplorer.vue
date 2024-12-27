@@ -183,6 +183,23 @@
     </div>
 
     <ContextMenu ref="menu" :model="contextItems"></ContextMenu>
+
+    <ConfirmDialog group="create-folder">
+      <template #container="{ acceptCallback: accept, rejectCallback: reject }">
+        <div class="flex w-90 flex-col items-end rounded px-4 pb-4 pt-8">
+          <InputText
+            class="w-full"
+            type="text"
+            v-model="newFolderName"
+            v-focus
+          ></InputText>
+          <div class="mt-6 flex items-center gap-2">
+            <Button :label="$t('cancel')" @click="reject" outlined></Button>
+            <Button :label="$t('create')" @click="accept"></Button>
+          </div>
+        </div>
+      </template>
+    </ConfirmDialog>
   </div>
 </template>
 
@@ -194,7 +211,9 @@ import { useExplorer } from 'hooks/explorer'
 import { defineResizeCallback } from 'hooks/resize'
 import { chunk } from 'lodash'
 import Button from 'primevue/button'
+import ConfirmDialog from 'primevue/confirmdialog'
 import ContextMenu from 'primevue/contextmenu'
+import InputText from 'primevue/inputtext'
 import { computed, ref } from 'vue'
 
 const {
@@ -204,6 +223,7 @@ const {
   selectedItems,
   menuRef: menu,
   contextItems,
+  newFolderName,
   refresh,
   entryFolder,
   folderContext,
