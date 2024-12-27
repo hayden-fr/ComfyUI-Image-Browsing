@@ -141,7 +141,7 @@ tmp_dir = os.path.join(config.extension_uri, "tmp")
 
 
 async def package_file(root_dir: str, file_list: list[str]):
-    zip_filename = f"{datetime.datetime.now().strftime("%Y%m%dT%H%M%SZ")}.zip"
+    zip_filename = f"{datetime.datetime.now().strftime('%Y%m%dT%H%M%SZ')}.zip"
 
     if not os.path.exists(tmp_dir):
         os.makedirs(tmp_dir)
