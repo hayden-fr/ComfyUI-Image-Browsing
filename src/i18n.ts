@@ -15,6 +15,8 @@ const messages = {
     addFolder: 'Add folder',
     uploadFile: 'Upload file',
     newFolderName: 'New Folder',
+    selected: 'Selected',
+    items: 'Items',
   },
   zh: {
     outputExplorer: 'Output Explorer',

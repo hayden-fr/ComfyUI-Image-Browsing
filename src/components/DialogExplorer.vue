@@ -1,11 +1,11 @@
 <template>
   <div
-    class="@container flex h-full w-full flex-col gap-4"
+    class="@container flex h-full w-full flex-col"
     v-resize="onContainerResize"
     @click="nonContextMenu"
     @contextmenu.prevent="nonContextMenu"
   >
-    <div class="@xl:flex-row flex flex-col gap-4 px-4">
+    <div class="@xl:flex-row mb-4 flex flex-col gap-4 px-4">
       <div class="flex flex-1 gap-1 overflow-hidden">
         <Button
           class="shrink-0"
@@ -179,6 +179,17 @@
         class="absolute left-0 top-0 h-full w-full"
       >
         <div class="pt-20 text-center">No Data</div>
+      </div>
+    </div>
+
+    <div class="flex select-none justify-between px-4 py-2 text-sm">
+      <div class="flex gap-4">
+        <span>{{ items.flat().length }} {{ $t('items') }}</span>
+        <span v-show="selectedItems.length > 0">
+          {{ $t('selected') }}
+          {{ selectedItems.length }}
+          {{ $t('items') }}
+        </span>
       </div>
     </div>
 
