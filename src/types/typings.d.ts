@@ -14,6 +14,7 @@ export interface DirectoryItem {
   onContextMenu?: ($event: MouseEvent) => void
   onFocus?: ($event: MouseEvent) => void
   onBlur?: ($event: MouseEvent) => void
+  onDragEnd?: ($event: DragEvent) => void
 }
 
 export interface SelectOptions {

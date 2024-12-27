@@ -34,10 +34,13 @@ async def scan_output_folder(request):
 
             is_preview = request.query.get("preview", "false") == "true"
 
-            image_arr = services.get_image_data(filepath, is_preview)
-            mime_type = services.get_file_mime_type(filepath)
+            if is_preview:
+                image_arr = services.get_image_data(filepath, is_preview)
+                mime_type = services.get_file_mime_type(filepath)
 
-            return web.Response(body=image_arr.getvalue(), content_type=mime_type)
+                return web.Response(body=image_arr.getvalue(), content_type=mime_type)
+            else:
+                return web.FileResponse(filepath)
         elif os.path.isdir(filepath):
             items = services.scan_directory_items(filepath)
             return web.json_response({"success": True, "data": items})

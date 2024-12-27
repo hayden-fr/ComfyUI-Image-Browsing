@@ -108,7 +108,7 @@
                 @dblclick.stop="rowItem.onDbClick"
                 @contextmenu.stop="rowItem.onContextMenu"
               >
-                <div class="h-24 w-24 overflow-hidden rounded-lg">
+                <div class="relative h-24 w-24 overflow-hidden rounded-lg">
                   <div v-if="rowItem.type === 'folder'" class="h-full w-full">
                     <svg
                       t="1730360536641"
@@ -132,12 +132,17 @@
                       ></path>
                     </svg>
                   </div>
-                  <span v-else-if="rowItem.type === 'image'">
-                    <img
-                      class="h-full w-full object-contain"
-                      :src="`/image-browsing${rowItem.fullname}?preview=true`"
-                    />
-                  </span>
+                  <img
+                    v-else-if="rowItem.type === 'image'"
+                    class="h-full w-full object-contain"
+                    :src="`/image-browsing${rowItem.fullname}?preview=true`"
+                    alt="preview"
+                  />
+                  <div
+                    class="absolute left-0 top-0 h-full w-full"
+                    draggable="true"
+                    @dragend.stop="rowItem.onDragEnd"
+                  ></div>
                 </div>
                 <div class="flex w-full justify-center overflow-hidden px-1">
                   <input
