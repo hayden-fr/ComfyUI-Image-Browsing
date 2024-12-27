@@ -146,6 +146,7 @@
                     class="w-full border-none text-xs outline-none"
                     type="text"
                     v-model="rowItem.editName"
+                    @dblclick.stop=""
                     @focus="rowItem.onFocus"
                     @blur="rowItem.onBlur"
                     @keydown.enter="enterKeyDown"
