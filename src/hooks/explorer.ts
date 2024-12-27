@@ -55,6 +55,67 @@ export const useExplorer = defineStore('explorer', (store) => {
     await refresh()
   }
 
+  const newFolderName = ref('')
+
+  const assertValidName = (name: string) => {
+    if (name.endsWith(' ') || name.endsWith('.')) {
+      const message = 'Name cannot end with space or period.'
+      toast.add({
+        severity: 'warn',
+        summary: 'Warning',
+        detail: message,
+        life: 2000,
+      })
+      throw new Error(message)
+    }
+
+    const windowsInvalidChars = /[<>:"/\\|?*]/
+    const linuxInvalidChars = /[/\0]/
+
+    if (windowsInvalidChars.test(name) || linuxInvalidChars.test(name)) {
+      const message = 'Name contains illegal characters: <>:"/\\|?*'
+      toast.add({
+        severity: 'warn',
+        summary: 'Warning',
+        detail: message,
+        life: 2000,
+      })
+      throw new Error(message)
+    }
+
+    const windowsReservedNames = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/i
+    if (windowsReservedNames.test(name.split('.')[0])) {
+      const message = 'Name cannot be reserved name.'
+      toast.add({
+        severity: 'warn',
+        summary: 'Warning',
+        detail: message,
+        life: 2000,
+      })
+      throw new Error(message)
+    }
+  }
+
+  const createItems = (formData: FormData) => {
+    loading.value = true
+    request(currentPath.value, {
+      method: 'POST',
+      body: formData,
+    })
+      .then(() => refresh())
+      .catch((err) => {
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: err.message || 'Failed to upload files.',
+          life: 5000,
+        })
+      })
+      .finally(() => {
+        loading.value = false
+      })
+  }
+
   const deleteItems = () => {
     confirm.require({
       message: t('deleteAsk', [t('selectedItems').toLowerCase()]),
@@ -129,72 +190,36 @@ export const useExplorer = defineStore('explorer', (store) => {
       }
     }
 
-    item.onFocus = () => {
-      const cancelEdit = ($event: KeyboardEvent) => {
+    item.onFocus = ($event: MouseEvent) => {
+      const target = $event.target as HTMLInputElement
+
+      const keyboardListener = ($event: KeyboardEvent) => {
         if ($event.key === 'Escape') {
-          item.editName = undefined
-          document.removeEventListener('keyup', cancelEdit)
+          target.blur()
+          document.removeEventListener('keyup', keyboardListener)
         }
       }
 
-      document.addEventListener('keyup', cancelEdit)
+      document.addEventListener('keyup', keyboardListener)
     }
 
     item.onBlur = ($event: MouseEvent) => {
       const name = item.editName?.trim() ?? ''
+      const filename = `${currentPath.value}${name}`
 
-      const refocusEdit = () => {
+      if (name === '' || filename === item.fullname) {
+        item.editName = undefined
+        return
+      }
+
+      try {
+        assertValidName(name)
+      } catch {
         const target = $event.target as HTMLInputElement
         target.focus()
+        return
       }
 
-      if (name === '') {
-        item.editName = undefined
-        return false
-      }
-
-      if (name.endsWith(' ') || name.endsWith('.')) {
-        toast.add({
-          severity: 'warn',
-          summary: 'Warning',
-          detail: 'Name cannot end with space or period.',
-          life: 2000,
-        })
-        refocusEdit()
-        return false
-      }
-
-      const windowsInvalidChars = /[<>:"/\\|?*]/
-      const linuxInvalidChars = /[/\0]/
-
-      if (windowsInvalidChars.test(name) || linuxInvalidChars.test(name)) {
-        toast.add({
-          severity: 'warn',
-          summary: 'Warning',
-          detail: 'Name contains illegal characters: <>:"/\\|?*',
-          life: 2000,
-        })
-        refocusEdit()
-        return false
-      }
-
-      const windowsReservedNames = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/i
-      if (windowsReservedNames.test(name.split('.')[0])) {
-        toast.add({
-          severity: 'warn',
-          summary: 'Warning',
-          detail: 'Name cannot be reserved name.',
-          life: 2000,
-        })
-        refocusEdit()
-        return false
-      }
-
-      const filename = `${currentPath.value}${name}`
-      if (filename === item.fullname) {
-        item.editName = undefined
-        return false
-      }
       request(item.fullname, {
         method: 'PUT',
         body: JSON.stringify({
@@ -311,6 +336,24 @@ export const useExplorer = defineStore('explorer', (store) => {
     selectedItems.value = []
     const contextMenu: MenuItem[] = [
       {
+        label: t('addFolder'),
+        icon: 'pi pi-folder-plus',
+        command: () => {
+          newFolderName.value = t('newFolderName')
+
+          confirm.require({
+            group: 'create-folder',
+            accept: () => {
+              const name = newFolderName.value
+              assertValidName(name)
+              const formData = new FormData()
+              formData.append('folders', name)
+              createItems(formData)
+            },
+          })
+        },
+      },
+      {
         label: t('uploadFile'),
         icon: 'pi pi-upload',
         command: () => {
@@ -327,23 +370,7 @@ export const useExplorer = defineStore('explorer', (store) => {
             for (let i = 0; i < files.length; i++) {
               formData.append('files', files[i])
             }
-            loading.value = true
-            request(currentPath.value, {
-              method: 'POST',
-              body: formData,
-            })
-              .then(() => refresh())
-              .catch((err) => {
-                toast.add({
-                  severity: 'error',
-                  summary: 'Error',
-                  detail: err.message || 'Failed to upload files.',
-                  life: 5000,
-                })
-              })
-              .finally(() => {
-                loading.value = false
-              })
+            createItems(formData)
           }
           fileInput.click()
         },
@@ -412,6 +439,7 @@ export const useExplorer = defineStore('explorer', (store) => {
     menuRef: menuRef,
     contextItems: contextItems,
     selectedItems: selectedItems,
+    newFolderName: newFolderName,
     refresh: refresh,
     deleteItems: deleteItems,
     entryFolder: entryFolder,
