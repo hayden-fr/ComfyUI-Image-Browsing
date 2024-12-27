@@ -81,7 +81,7 @@ async def create_file_or_folder(pathname: str, reader):
             filename = await part.text()
             filepath = f"{real_pathname}{filename}"
             if os.path.exists(filepath):
-                raise RuntimeError(f"Filename was existed.")
+                raise RuntimeError(f"filename '{filename}' was existed.")
             utils.print_debug(f"Create folder: {filepath}")
             os.mkdir(filepath)
 
