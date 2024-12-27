@@ -2,6 +2,7 @@ import { request } from 'hooks/request'
 import { defineStore } from 'hooks/store'
 import { useToast } from 'hooks/toast'
 import { MenuItem } from 'primevue/menuitem'
+import { app } from 'scripts/comfyAPI'
 import { DirectoryItem, SelectOptions } from 'types/typings'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -365,6 +366,24 @@ export const useExplorer = defineStore('explorer', (store) => {
 
       contextItems.value = contextMenu
       menuRef.value.show($event)
+    }
+
+    item.onDragEnd = ($event) => {
+      const target = document.elementFromPoint($event.clientX, $event.clientY)
+
+      if (
+        target?.tagName.toLocaleLowerCase() === 'canvas' &&
+        target.id === 'graph-canvas'
+      ) {
+        const imageSource = `/image-browsing${item.fullname}`
+        fetch(imageSource)
+          .then((response) => response.blob())
+          .then((data) => {
+            const type = data.type
+            const file = new File([data], item.name, { type })
+            app.handleFile(file)
+          })
+      }
     }
   }
 
