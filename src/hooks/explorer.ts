@@ -447,11 +447,6 @@ export const useExplorer = defineStore('explorer', (store) => {
       })
   }
 
-  const clearStatus = () => {
-    selectedItems.value = []
-    currentSelected.value = undefined
-  }
-
   return {
     loading: loading,
     items: items,
@@ -465,7 +460,6 @@ export const useExplorer = defineStore('explorer', (store) => {
     entryFolder: entryFolder,
     folderContext: folderContext,
     goBackParentFolder: goBackParentFolder,
-    clearStatus: clearStatus,
   }
 })
 
