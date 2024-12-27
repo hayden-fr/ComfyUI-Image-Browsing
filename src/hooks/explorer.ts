@@ -128,38 +128,44 @@ export const useExplorer = defineStore('explorer', (store) => {
   }
 
   const deleteItems = () => {
-    confirm.require({
-      message: t('deleteAsk', [t('selectedItems').toLowerCase()]),
-      header: 'Danger',
-      icon: 'pi pi-info-circle',
-      rejectProps: {
-        label: t('cancel'),
-        severity: 'secondary',
-        outlined: true,
-      },
-      acceptProps: {
-        label: t('delete'),
-        severity: 'danger',
-      },
-      accept: () => {
-        request(`/delete`, {
-          method: 'DELETE',
-          body: JSON.stringify({
-            uri: currentPath.value,
-            file_list: selectedItems.value.map((c) => c.fullname),
-          }),
-        }).then(() => {
-          toast.add({
-            severity: 'success',
-            summary: 'Success',
-            detail: 'Deleted successfully.',
-            life: 2000,
-          })
-          return refresh()
+    const handleDelete = () => {
+      request(`/delete`, {
+        method: 'DELETE',
+        body: JSON.stringify({
+          uri: currentPath.value,
+          file_list: selectedItems.value.map((c) => c.fullname),
+        }),
+      }).then(() => {
+        toast.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Deleted successfully.',
+          life: 2000,
         })
-      },
-      reject: () => {},
-    })
+        return refresh()
+      })
+    }
+
+    if (store.config.showDeleteConfirm.value) {
+      confirm.require({
+        message: t('deleteAsk', [t('selectedItems').toLowerCase()]),
+        header: 'Danger',
+        icon: 'pi pi-info-circle',
+        rejectProps: {
+          label: t('cancel'),
+          severity: 'secondary',
+          outlined: true,
+        },
+        acceptProps: {
+          label: t('delete'),
+          severity: 'danger',
+        },
+        accept: handleDelete,
+        reject: () => {},
+      })
+    } else {
+      handleDelete()
+    }
   }
 
   const bindEvents = (item: DirectoryItem, index: number) => {
