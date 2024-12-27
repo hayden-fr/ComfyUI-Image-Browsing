@@ -195,6 +195,7 @@ export const useExplorer = defineStore('explorer', (store) => {
 
       const keyboardListener = ($event: KeyboardEvent) => {
         if ($event.key === 'Escape') {
+          item.editName = undefined
           target.blur()
           document.removeEventListener('keyup', keyboardListener)
         }
