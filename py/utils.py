@@ -77,3 +77,11 @@ def download_web_distribution(version: str):
         print_error(f"Failed to extract web distribution: {e}")
     except Exception as e:
         print_error(f"An unexpected error occurred: {e}")
+
+
+def get_output_pathname(pathname: str):
+    return f"/output{pathname}"
+
+
+def get_real_output_filepath(filepath: str):
+    return filepath.replace("/output", config.output_uri, 1)

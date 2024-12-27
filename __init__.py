@@ -20,24 +20,26 @@ from .py import services
 routes = config.routes
 
 
-@routes.get("/image-browsing/output/{pathname:.*}")
+@routes.get("/image-browsing/output{pathname:.*}")
 async def scan_output_folder(request):
     try:
         pathname = request.match_info.get("pathname", None)
-        filename = os.path.join(config.output_uri, pathname)
-        if os.path.isfile(filename):
+        pathname = utils.get_output_pathname(pathname)
+        filepath = utils.get_real_output_filepath(pathname)
 
-            if not services.asset_is_image(filename):
+        if os.path.isfile(filepath):
+
+            if not services.asset_is_image(filepath):
                 return web.Response(status=400)
 
             is_preview = request.query.get("preview", "false") == "true"
 
-            image_arr = services.get_image_data(filename, is_preview)
-            mime_type = services.get_file_mime_type(filename)
+            image_arr = services.get_image_data(filepath, is_preview)
+            mime_type = services.get_file_mime_type(filepath)
 
             return web.Response(body=image_arr.getvalue(), content_type=mime_type)
-        elif os.path.isdir(filename):
-            items = services.scan_directory_items(filename)
+        elif os.path.isdir(filepath):
+            items = services.scan_directory_items(filepath)
             return web.json_response({"success": True, "data": items})
         return web.Response(status=404)
     except Exception as e:
@@ -46,12 +48,12 @@ async def scan_output_folder(request):
         return web.json_response({"success": False, "error": error_msg})
 
 
-@routes.post("/image-browsing/output/{pathname:.*}")
+@routes.post("/image-browsing/output{pathname:.*}")
 async def create_file_or_folder(request):
     try:
-        reader = await request.multipart()
         pathname = request.match_info.get("pathname", None)
-        pathname = f"/output/{pathname}"
+        pathname = utils.get_output_pathname(pathname)
+        reader = await request.multipart()
         await services.create_file_or_folder(pathname, reader)
         return web.json_response({"success": True})
     except Exception as e:
@@ -60,13 +62,14 @@ async def create_file_or_folder(request):
         return web.json_response({"success": False, "error": error_msg})
 
 
-@routes.put("/image-browsing/output/{pathname:.*}")
+@routes.put("/image-browsing/output{pathname:.*}")
 async def update_output_file(request):
     try:
-        data = await request.json()
         pathname = request.match_info.get("pathname", None)
+        pathname = utils.get_output_pathname(pathname)
+        data = await request.json()
         filename = data.get("filename", None)
-        services.rename_file(f"/output/{pathname}", filename)
+        services.rename_file(pathname, filename)
         return web.json_response({"success": True})
     except Exception as e:
         error_msg = f"Update failed: {str(e)}"

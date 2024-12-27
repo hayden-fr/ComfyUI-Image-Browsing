@@ -50,7 +50,7 @@ def scan_directory_items(directory: str):
 
 
 async def create_file_or_folder(pathname: str, reader):
-    real_pathname = pathname.replace("/output", config.output_uri)
+    real_pathname = utils.get_real_output_filepath(pathname)
 
     while True:
         part = await reader.next()
@@ -61,7 +61,7 @@ async def create_file_or_folder(pathname: str, reader):
 
         if name == "files":
             filename = part.filename
-            filepath = f"{real_pathname}{filename}"
+            filepath = f"{real_pathname}/{filename}"
             while True:
                 if not os.path.exists(filepath):
                     break
@@ -79,7 +79,7 @@ async def create_file_or_folder(pathname: str, reader):
 
         if name == "folders":
             filename = await part.text()
-            filepath = f"{real_pathname}{filename}"
+            filepath = f"{real_pathname}/{filename}"
             if os.path.exists(filepath):
                 raise RuntimeError(f"filename '{filename}' was existed.")
             utils.print_debug(f"Create folder: {filepath}")
@@ -87,22 +87,21 @@ async def create_file_or_folder(pathname: str, reader):
 
 
 def rename_file(pathname: str, filename: str):
-    real_pathname = pathname.replace("/output", config.output_uri)
-    real_filename = filename.replace("/output", config.output_uri)
+    real_pathname = utils.get_real_output_filepath(pathname)
+    real_filename = utils.get_real_output_filepath(filename)
     shutil.move(real_pathname, real_filename)
 
 
 def recursive_delete_files(file_list: list[str]):
     for file_path in file_list:
-        real_path = file_path.replace("/output", config.output_uri)
+        real_path = utils.get_real_output_filepath(file_path)
 
         if os.path.isfile(real_path):
             os.remove(real_path)
+        elif os.path.islink(real_path):
+            os.unlink(real_path)
         elif os.path.isdir(real_path):
-            for root, _, files in os.walk(real_path):
-                for file in files:
-                    os.remove(os.path.join(root, file))
-            os.rmdir(real_path)
+            shutil.rmtree(real_path)
 
 
 from PIL import Image
@@ -152,7 +151,7 @@ async def package_file(root_dir: str, file_list: list[str]):
         os.makedirs(tmp_dir)
 
     zip_temp_file = os.path.join(tmp_dir, zip_filename)
-    real_root_dir = root_dir.replace("/output", config.output_uri)
+    real_root_dir = utils.get_real_output_filepath(root_dir)
 
     utils.print_debug(f"Creating zip file: {zip_temp_file}")
     utils.print_debug(f"Root directory: {root_dir}")
@@ -160,7 +159,7 @@ async def package_file(root_dir: str, file_list: list[str]):
 
     with zipfile.ZipFile(zip_temp_file, "w", zipfile.ZIP_DEFLATED) as zip_file:
         for file_path in file_list:
-            real_path = file_path.replace("/output", config.output_uri)
+            real_path = utils.get_real_output_filepath(file_path)
             filename = os.path.relpath(file_path, root_dir)
 
             if os.path.isfile(real_path):
