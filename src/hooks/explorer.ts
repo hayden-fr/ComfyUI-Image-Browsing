@@ -58,6 +58,17 @@ export const useExplorer = defineStore('explorer', (store) => {
   const newFolderName = ref('')
 
   const assertValidName = (name: string) => {
+    if (items.value.some((c) => c.name == name)) {
+      const message = 'Name was existed.'
+      toast.add({
+        severity: 'warn',
+        summary: 'Warning',
+        detail: message,
+        life: 2000,
+      })
+      throw new Error(message)
+    }
+
     if (name.endsWith(' ') || name.endsWith('.')) {
       const message = 'Name cannot end with space or period.'
       toast.add({
