@@ -411,6 +411,8 @@ export const useExplorer = defineStore('explorer', (store) => {
             images.push(item)
           }
         }
+        folders.sort((a, b) => a.name.localeCompare(b.name))
+        images.sort((a, b) => a.name.localeCompare(b.name))
         items.value = [...folders, ...images]
         items.value.forEach(bindEvents)
         breadcrumb.value[breadcrumb.value.length - 1].children = folders.map(
