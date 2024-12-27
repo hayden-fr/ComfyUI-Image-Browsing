@@ -62,10 +62,13 @@ async def create_file_or_folder(pathname: str, reader):
         if name == "files":
             filename = part.filename
             filepath = f"{real_pathname}{filename}"
-            if os.path.isfile(filepath):
+            while True:
+                if not os.path.exists(filepath):
+                    break
                 filepath_0 = os.path.splitext(filepath)[0]
                 filepath_1 = os.path.splitext(filepath)[1]
                 filepath = f"{filepath_0}(1){filepath_1}"
+
             utils.print_debug(f"Creating file: {filepath}")
             with open(filepath, "wb") as f:
                 while True:
@@ -77,6 +80,8 @@ async def create_file_or_folder(pathname: str, reader):
         if name == "folders":
             filename = await part.text()
             filepath = f"{real_pathname}{filename}"
+            if os.path.exists(filepath):
+                raise RuntimeError(f"filename '{filename}' was existed.")
             utils.print_debug(f"Create folder: {filepath}")
             os.mkdir(filepath)
 
