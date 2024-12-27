@@ -2,7 +2,6 @@
   <div
     class="@container flex h-full w-full flex-col"
     v-resize="onContainerResize"
-    @click="nonContextMenu"
     @contextmenu.prevent="nonContextMenu"
   >
     <div class="@xl:flex-row mb-4 flex flex-col gap-4 px-4">
@@ -86,6 +85,7 @@
 
     <div
       class="relative flex-1 select-none overflow-hidden"
+      @click="clearSelected"
       @contextmenu.stop="folderContext"
     >
       <ResponseScroll :items="folderItems" :item-size="128" class="h-full">
@@ -270,8 +270,11 @@ const selectedItemsName = computed(() => {
 })
 
 const nonContextMenu = ($event: MouseEvent) => {
-  selectedItems.value = []
   menu.value.hide($event)
+}
+
+const clearSelected = () => {
+  selectedItems.value = []
 }
 
 const vFocus = {
