@@ -20,7 +20,7 @@ export const useExplorer = defineStore('explorer', (store) => {
     name: 'output',
     type: 'folder',
     size: 0,
-    fullname: '/output/',
+    fullname: '/output',
     createdAt: 0,
     updatedAt: 0,
     children: [],
@@ -135,15 +135,24 @@ export const useExplorer = defineStore('explorer', (store) => {
           uri: currentPath.value,
           file_list: selectedItems.value.map((c) => c.fullname),
         }),
-      }).then(() => {
-        toast.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'Deleted successfully.',
-          life: 2000,
-        })
-        return refresh()
       })
+        .then(() => {
+          toast.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Deleted successfully.',
+            life: 2000,
+          })
+          return refresh()
+        })
+        .catch((err) => {
+          toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: err.message || 'Failed to load folder list.',
+            life: 15000,
+          })
+        })
     }
 
     if (store.config.showDeleteConfirm.value) {
@@ -223,7 +232,7 @@ export const useExplorer = defineStore('explorer', (store) => {
 
     item.onBlur = ($event: MouseEvent) => {
       const name = item.editName?.trim() ?? ''
-      const filename = `${currentPath.value}${name}`
+      const filename = `${currentPath.value}/${name}`
 
       if (name === '' || filename === item.fullname) {
         item.editName = undefined
@@ -243,11 +252,20 @@ export const useExplorer = defineStore('explorer', (store) => {
         body: JSON.stringify({
           filename: filename,
         }),
-      }).then(() => {
-        item.name = name
-        item.fullname = filename
-        item.editName = undefined
       })
+        .then(() => {
+          item.name = name
+          item.fullname = filename
+          item.editName = undefined
+        })
+        .catch((err) => {
+          toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: err.message || 'Failed to load folder list.',
+            life: 15000,
+          })
+        })
     }
 
     item.onContextMenu = ($event) => {
@@ -409,11 +427,10 @@ export const useExplorer = defineStore('explorer', (store) => {
         const folders: DirectoryItem[] = []
         const images: DirectoryItem[] = []
         for (const item of resData) {
+          item.fullname = `${currentPath.value}/${item.name}`
           if (item.type === 'folder') {
-            item.fullname = `${currentPath.value}${item.name}/`
             folders.push(item)
           } else {
-            item.fullname = `${currentPath.value}${item.name}`
             images.push(item)
           }
         }
