@@ -12,8 +12,12 @@
         @click="close"
       ></Button>
     </div>
-    <div class="h-auto w-max select-none" @click.stop="">
-      <img :src="`/image-browsing${current?.fullname}`" alt="preview" />
+    <div class="h-full w-full select-none p-10" @click.stop="">
+      <img
+        class="h-full w-full object-contain"
+        :src="`/image-browsing${current?.fullname}`"
+        alt="preview"
+      />
     </div>
   </div>
 </template>
