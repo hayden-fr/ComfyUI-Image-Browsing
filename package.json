@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint src",
+    "build": "vue-tsc --noEmit && vite build",
+    "lint": "vue-tsc --noEmit && eslint src",
     "prepare": "husky"
   },
   "devDependencies": {
@@ -41,8 +41,8 @@
   },
   "lint-staged": {
     "./**/*.{js,ts,tsx,vue}": [
-      "prettier --write",
-      "git add"
+      "eslint --fix",
+      "prettier --write"
     ]
   }
 }

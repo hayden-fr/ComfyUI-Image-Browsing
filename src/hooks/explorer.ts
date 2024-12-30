@@ -178,6 +178,44 @@ export const useExplorer = defineStore('explorer', (store) => {
     }
   }
 
+  const renameItem = (item: DirectoryItem) => {
+    confirmName.value = item.name
+
+    confirm.require({
+      group: 'confirm-name',
+      accept: () => {
+        const name = confirmName.value?.trim() ?? ''
+        const filename = `${currentPath.value}/${name}`
+
+        // If name is empty or same as current name, do nothing
+        if (name === '' || name === item.name) {
+          return
+        }
+
+        assertValidName(name)
+
+        request(item.fullname, {
+          method: 'PUT',
+          body: JSON.stringify({
+            filename: filename,
+          }),
+        })
+          .then(() => {
+            item.name = name
+            item.fullname = filename
+          })
+          .catch((err) => {
+            toast.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: err.message || 'Failed to load folder list.',
+              life: 5000,
+            })
+          })
+      },
+    })
+  }
+
   const bindEvents = (item: DirectoryItem, index: number) => {
     item.onClick = ($event) => {
       menuRef.value.hide($event)
@@ -268,41 +306,7 @@ export const useExplorer = defineStore('explorer', (store) => {
         label: t('rename'),
         icon: 'pi pi-file-edit',
         command: () => {
-          confirmName.value = item.name
-
-          confirm.require({
-            group: 'confirm-name',
-            accept: () => {
-              const name = confirmName.value?.trim() ?? ''
-              const filename = `${currentPath.value}/${name}`
-
-              // If name is empty or same as current name, do nothing
-              if (name === '' || name === item.name) {
-                return
-              }
-
-              assertValidName(name)
-
-              request(item.fullname, {
-                method: 'PUT',
-                body: JSON.stringify({
-                  filename: filename,
-                }),
-              })
-                .then(() => {
-                  item.name = name
-                  item.fullname = filename
-                })
-                .catch((err) => {
-                  toast.add({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: err.message || 'Failed to load folder list.',
-                    life: 5000,
-                  })
-                })
-            },
-          })
+          renameItem(item)
         },
       })
 
@@ -465,6 +469,11 @@ export const useExplorer = defineStore('explorer', (store) => {
       })
   }
 
+  const clearStatus = () => {
+    selectedItems.value = []
+    currentSelected.value = undefined
+  }
+
   return {
     loading: loading,
     items: items,
@@ -475,9 +484,11 @@ export const useExplorer = defineStore('explorer', (store) => {
     confirmName: confirmName,
     refresh: refresh,
     deleteItems: deleteItems,
+    renameItem: renameItem,
     entryFolder: entryFolder,
     folderContext: folderContext,
     goBackParentFolder: goBackParentFolder,
+    clearStatus: clearStatus,
   }
 })
 

@@ -31,7 +31,7 @@ const keyboardListener = ($event: KeyboardEvent) => {
   if ($event.key === 'F2') {
     if (explorer.selectedItems.value.length === 1) {
       const item = explorer.selectedItems.value[0]
-      item.editName = item.name
+      explorer.renameItem(item)
     }
   }
 }
