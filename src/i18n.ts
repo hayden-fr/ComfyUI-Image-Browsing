@@ -18,6 +18,8 @@ const messages = {
     newFolderName: 'New Folder',
     selected: 'Selected',
     items: 'Items',
+    cancel: 'Cancel',
+    confirm: 'Confirm',
   },
   zh: {
     outputExplorer: '输出浏览器',
@@ -36,6 +38,8 @@ const messages = {
     newFolderName: '新建文件夹',
     selected: '已选',
     items: '个项目',
+    cancel: '取消',
+    confirm: '确认',
   },
 }
 

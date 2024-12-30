@@ -56,7 +56,7 @@ export const useExplorer = defineStore('explorer', (store) => {
     await refresh()
   }
 
-  const newFolderName = ref('')
+  const confirmName = ref<string | undefined>(undefined)
 
   const assertValidName = (name: string) => {
     if (items.value.some((c) => c.name == name)) {
@@ -217,58 +217,6 @@ export const useExplorer = defineStore('explorer', (store) => {
       }
     }
 
-    item.onFocus = ($event: MouseEvent) => {
-      const target = $event.target as HTMLInputElement
-
-      const keyboardListener = ($event: KeyboardEvent) => {
-        if ($event.key === 'Escape') {
-          item.editName = undefined
-          target.blur()
-          document.removeEventListener('keyup', keyboardListener)
-        }
-      }
-
-      document.addEventListener('keyup', keyboardListener)
-    }
-
-    item.onBlur = ($event: MouseEvent) => {
-      const name = item.editName?.trim() ?? ''
-      const filename = `${currentPath.value}/${name}`
-
-      if (name === '' || filename === item.fullname) {
-        item.editName = undefined
-        return
-      }
-
-      try {
-        assertValidName(name)
-      } catch {
-        const target = $event.target as HTMLInputElement
-        target.focus()
-        return
-      }
-
-      request(item.fullname, {
-        method: 'PUT',
-        body: JSON.stringify({
-          filename: filename,
-        }),
-      })
-        .then(() => {
-          item.name = name
-          item.fullname = filename
-          item.editName = undefined
-        })
-        .catch((err) => {
-          toast.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: err.message || 'Failed to load folder list.',
-            life: 15000,
-          })
-        })
-    }
-
     item.onContextMenu = ($event) => {
       const isSelected = selectedItems.value.some((c) => c.name === item.name)
 
@@ -320,7 +268,41 @@ export const useExplorer = defineStore('explorer', (store) => {
         label: t('rename'),
         icon: 'pi pi-file-edit',
         command: () => {
-          item.editName = item.name
+          confirmName.value = item.name
+
+          confirm.require({
+            group: 'confirm-name',
+            accept: () => {
+              const name = confirmName.value?.trim() ?? ''
+              const filename = `${currentPath.value}/${name}`
+
+              // If name is empty or same as current name, do nothing
+              if (name === '' || name === item.name) {
+                return
+              }
+
+              assertValidName(name)
+
+              request(item.fullname, {
+                method: 'PUT',
+                body: JSON.stringify({
+                  filename: filename,
+                }),
+              })
+                .then(() => {
+                  item.name = name
+                  item.fullname = filename
+                })
+                .catch((err) => {
+                  toast.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: err.message || 'Failed to load folder list.',
+                    life: 5000,
+                  })
+                })
+            },
+          })
         },
       })
 
@@ -394,12 +376,12 @@ export const useExplorer = defineStore('explorer', (store) => {
         label: t('addFolder'),
         icon: 'pi pi-folder-plus',
         command: () => {
-          newFolderName.value = t('newFolderName')
+          confirmName.value = t('newFolderName')
 
           confirm.require({
-            group: 'create-folder',
+            group: 'confirm-name',
             accept: () => {
-              const name = newFolderName.value
+              const name = confirmName.value ?? ''
               assertValidName(name)
               const formData = new FormData()
               formData.append('folders', name)
@@ -490,7 +472,7 @@ export const useExplorer = defineStore('explorer', (store) => {
     menuRef: menuRef,
     contextItems: contextItems,
     selectedItems: selectedItems,
-    newFolderName: newFolderName,
+    confirmName: confirmName,
     refresh: refresh,
     deleteItems: deleteItems,
     entryFolder: entryFolder,

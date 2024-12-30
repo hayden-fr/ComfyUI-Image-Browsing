@@ -145,18 +145,7 @@
                   ></div>
                 </div>
                 <div class="flex w-full justify-center overflow-hidden px-1">
-                  <input
-                    v-if="typeof rowItem.editName === 'string'"
-                    v-focus
-                    class="w-full border-none text-xs outline-none"
-                    type="text"
-                    v-model="rowItem.editName"
-                    @dblclick.stop=""
-                    @focus="rowItem.onFocus"
-                    @blur="rowItem.onBlur"
-                    @keydown.enter="enterKeyDown"
-                  />
-                  <span v-else class="overflow-hidden text-ellipsis text-xs">
+                  <span class="overflow-hidden text-ellipsis text-xs">
                     {{ rowItem.name }}
                   </span>
                 </div>
@@ -201,18 +190,19 @@
 
     <ContextMenu ref="menu" :model="contextItems"></ContextMenu>
 
-    <ConfirmDialog group="create-folder">
+    <ConfirmDialog group="confirm-name">
       <template #container="{ acceptCallback: accept, rejectCallback: reject }">
         <div class="flex w-90 flex-col items-end rounded px-4 pb-4 pt-8">
           <InputText
             class="w-full"
             type="text"
-            v-model="newFolderName"
+            v-model="confirmName"
             v-focus
+            @keyup.enter="accept"
           ></InputText>
           <div class="mt-6 flex items-center gap-2">
             <Button :label="$t('cancel')" @click="reject" outlined></Button>
-            <Button :label="$t('create')" @click="accept"></Button>
+            <Button :label="$t('confirm')" @click="accept"></Button>
           </div>
         </div>
       </template>
@@ -240,7 +230,7 @@ const {
   selectedItems,
   menuRef: menu,
   contextItems,
-  newFolderName,
+  confirmName,
   refresh,
   entryFolder,
   folderContext,
@@ -285,10 +275,5 @@ const clearSelected = () => {
 
 const vFocus = {
   mounted: (el: HTMLInputElement) => el.focus(),
-}
-
-const enterKeyDown = ($event: KeyboardEvent) => {
-  const target = $event.target as HTMLInputElement
-  target.blur()
 }
 </script>
