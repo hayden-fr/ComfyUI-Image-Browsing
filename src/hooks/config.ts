@@ -1,13 +1,16 @@
 import { defineStore } from 'hooks/store'
 import { app } from 'scripts/comfyAPI'
 import { onMounted, onUnmounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const useAddConfigSettings = (config: Config) => {
+  const { t } = useI18n()
+
   onMounted(() => {
     app.ui?.settings.addSetting({
       id: 'ImageBrowsing.Delete.Confirm',
-      category: ['Image Browsing', 'Delete'],
-      name: 'Show delete confirmation dialog',
+      category: [t('outputExplorer'), t('delete')],
+      name: t('setting.showDeleteConfirm'),
       type: 'boolean',
       defaultValue: true,
       onChange: (value) => {

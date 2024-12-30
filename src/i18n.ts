@@ -20,6 +20,9 @@ const messages = {
     items: 'Items',
     cancel: 'Cancel',
     confirm: 'Confirm',
+    setting: {
+      showDeleteConfirm: 'Show delete confirmation dialog',
+    },
   },
   zh: {
     outputExplorer: '输出浏览器',
@@ -31,7 +34,7 @@ const messages = {
     rename: '重命名',
     download: '打包并下载',
     delete: '删除',
-    deleteAsk: '确认删除 {0}?',
+    deleteAsk: '确认删除{0}?',
     selectedItems: '已选项目',
     addFolder: '新增文件夹',
     uploadFile: '上传文件',
@@ -40,6 +43,9 @@ const messages = {
     items: '个项目',
     cancel: '取消',
     confirm: '确认',
+    setting: {
+      showDeleteConfirm: '显示删除确认对话框',
+    },
   },
 }
 
