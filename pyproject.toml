@@ -2,7 +2,7 @@
 name = "comfyui-image-browsing"
 description = "Image Browsing: browsing, download and delete."
 version = "2.1.0"
-license = "LICENSE"
+license = { file = "LICENSE" }
 
 [project.urls]
 Repository = "https://github.com/hayden-fr/ComfyUI-Image-Browsing"
