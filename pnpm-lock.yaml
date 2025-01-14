@@ -27,9 +27,6 @@ importers:
         specifier: ^9.13.1
         version: 9.14.1(vue@3.5.12(typescript@5.6.3))
     devDependencies:
-      '@tailwindcss/container-queries':
-        specifier: ^0.1.1
-        version: 0.1.1(tailwindcss@3.4.14)
       '@types/lodash':
         specifier: ^4.17.9
         version: 4.17.13
@@ -469,11 +466,6 @@ packages:
     resolution: {integrity: sha512-HGZgRFFYrMrP3TJlq58nR1xy8zHKId25vhmm5S9jETEfDf6xybPxsavFTJaufe2zgOGYJBskGlj49CwtEuFhWQ==}
     cpu: [x64]
     os: [win32]
-
-  '@tailwindcss/container-queries@0.1.1':
-    resolution: {integrity: sha512-p18dswChx6WnTSaJCSGx6lTmrGzNNvm2FtXmiO6AuA1V4U5REyoqwmT6kgAsIMdjo07QdAfYXHJ4hnMtfHzWgA==}
-    peerDependencies:
-      tailwindcss: '>=3.2.0'
 
   '@types/estree@1.0.6':
     resolution: {integrity: sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw==}
@@ -1972,10 +1964,6 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.24.3':
     optional: true
-
-  '@tailwindcss/container-queries@0.1.1(tailwindcss@3.4.14)':
-    dependencies:
-      tailwindcss: 3.4.14
 
   '@types/estree@1.0.6': {}
 
