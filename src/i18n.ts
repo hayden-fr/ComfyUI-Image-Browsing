@@ -1,3 +1,4 @@
+import { app } from 'scripts/comfyAPI'
 import { createI18n } from 'vue-i18n'
 
 const messages = {
@@ -51,11 +52,11 @@ const messages = {
 
 const getLocalLanguage = () => {
   const local =
-    localStorage.getItem('Comfy.Settings.Comfy.Locale') ||
+    app.ui?.settings.getSettingValue<string>('Comfy.Locale') ||
     navigator.language.split('-')[0] ||
     'en'
 
-  return local.replace(/['"]/g, '')
+  return local
 }
 
 export const i18n = createI18n({
