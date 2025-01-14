@@ -1,10 +1,11 @@
 <template>
   <div
-    class="@container flex h-full w-full flex-col"
+    class="flex h-full w-full flex-col"
     v-resize="onContainerResize"
+    v-container="container"
     @contextmenu.prevent="nonContextMenu"
   >
-    <div class="@xl:flex-row mb-4 flex flex-col gap-4 px-4">
+    <div :class="['mb-4 flex gap-4 px-4', $xl('flex-row', 'flex-col')]">
       <div class="flex flex-1 gap-1 overflow-hidden">
         <Button
           class="shrink-0"
@@ -214,6 +215,7 @@
 import ResponseInput from 'components/ResponseInput.vue'
 import ResponseScroll from 'components/ResponseScroll.vue'
 import ResponseSelect from 'components/ResponseSelect.vue'
+import { useContainerQueries } from 'hooks/container'
 import { useExplorer } from 'hooks/explorer'
 import { defineResizeCallback } from 'hooks/resize'
 import { chunk } from 'lodash'
@@ -276,4 +278,8 @@ const clearSelected = () => {
 const vFocus = {
   mounted: (el: HTMLInputElement) => el.focus(),
 }
+
+const container = Symbol('container')
+
+const { $xl } = useContainerQueries(container)
 </script>
