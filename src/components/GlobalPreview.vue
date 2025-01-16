@@ -18,6 +18,22 @@
         alt="preview"
       />
     </div>
+    <div class="absolute left-2 top-1/2">
+      <Button
+        icon="pi pi-angle-left"
+        severity="secondary"
+        rounded
+        @click="openPreviousImage"
+      ></Button>
+    </div>
+    <div class="absolute right-2 top-1/2">
+      <Button
+        icon="pi pi-angle-right"
+        severity="secondary"
+        rounded
+        @click="openNextImage"
+      ></Button>
+    </div>
   </div>
 </template>
 
@@ -25,5 +41,6 @@
 import { usePreview } from 'hooks/preview'
 import Button from 'primevue/button'
 
-const { visible, current, close } = usePreview()
+const { visible, current, close, openPreviousImage, openNextImage } =
+  usePreview()
 </script>

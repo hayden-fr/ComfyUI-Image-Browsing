@@ -60,6 +60,8 @@ export const usePreview = defineStore('preview', (store) => {
     current,
     open,
     close,
+    openPreviousImage,
+    openNextImage,
   }
 })
 
