@@ -29,3 +29,4 @@ Click right mouse to open the context menu
   - View(folder context menu -> `View` or double click to open)
 - Select multiple items(`Ctrl`/`Shift`)
 - Download items to local
+- Use Left/Right direction keys to change current image in preview window
