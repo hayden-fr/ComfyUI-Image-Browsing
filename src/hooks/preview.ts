@@ -32,6 +32,9 @@ export const usePreview = defineStore('preview', (store) => {
   }
 
   const previewKeyboardListener = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      close()
+    }
     if (event.key === 'ArrowLeft') {
       openPreviousImage()
     }
