@@ -6,6 +6,9 @@ from . import config
 from . import utils
 
 
+mimetypes.add_type("image/webp", ".webp")
+
+
 def get_file_mime_type(filename):
     mime_type, _ = mimetypes.guess_type(filename, strict=False)
     return mime_type
