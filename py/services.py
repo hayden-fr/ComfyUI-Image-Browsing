@@ -1,55 +1,92 @@
 import os
 import shutil
 import mimetypes
+import folder_paths
 
 from . import config
 from . import utils
+from typing import Literal
 
 
-mimetypes.add_type("image/webp", ".webp")
+def get_file_content_type(filename: str):
+    extension_mimetypes_cache = folder_paths.extension_mimetypes_cache
+
+    extension = filename.split(".")[-1]
+    content_type = None
+    if extension not in extension_mimetypes_cache:
+        mime_type, _ = mimetypes.guess_type(filename, strict=False)
+        if mime_type:
+            content_type = mime_type.split("/")[0]
+            extension_mimetypes_cache[extension] = content_type
+    else:
+        content_type = extension_mimetypes_cache[extension]
+
+    return content_type
 
 
-def get_file_mime_type(filename):
-    mime_type, _ = mimetypes.guess_type(filename, strict=False)
-    return mime_type
+def assert_file_type(filename: str, content_types: Literal["image", "video", "audio"]):
+    content_type = get_file_content_type(filename)
+    if not content_type:
+        return False
+    return content_type in content_types
 
 
-def asset_is_image(filename: str):
-    mime_type = get_file_mime_type(filename)
-    return mime_type is not None and mime_type.startswith("image")
+class CacheHelper:
+    def __init__(self) -> None:
+        self.cache: dict[str, tuple[list, float]] = {}
+
+    def get_cache(self, key: str):
+        return self.cache.get(key, ([], 0))
+
+    def set_cache(self, key: str, value: tuple[list, float]):
+        self.cache[key] = value
+
+    def rm_cache(self, key: str):
+        if key in self.cache:
+            del self.cache[key]
+
+
+cache_helper = CacheHelper()
+
+
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 def scan_directory_items(directory: str):
-    try:
-        items = os.listdir(directory)
-        output: list[dict] = []
+    result, m_time = cache_helper.get_cache(directory)
+    folder_m_time = os.path.getmtime(directory)
 
-        for item in items:
-            abs_path = os.path.join(directory, item)
-            state = os.stat(abs_path)
-            if os.path.isdir(abs_path):
-                output.append(
-                    {
-                        "name": item,
-                        "type": "folder",
-                        "size": 0,
-                        "createdAt": round(state.st_ctime_ns / 1000000),
-                        "updatedAt": round(state.st_mtime_ns / 1000000),
-                    }
-                )
-            elif os.path.isfile(abs_path) and asset_is_image(abs_path):
-                output.append(
-                    {
-                        "name": item,
-                        "type": "image",
-                        "size": state.st_size,
-                        "createdAt": round(state.st_ctime_ns / 1000000),
-                        "updatedAt": round(state.st_mtime_ns / 1000000),
-                    }
-                )
-        return output
-    except:
-        return []
+    if folder_m_time == m_time:
+        return result
+
+    result = []
+
+    def get_file_info(entry: os.DirEntry[str]):
+        filepath = entry.path
+        is_dir = entry.is_dir()
+
+        if not is_dir and not assert_file_type(filepath, ["image"]):
+            return None
+
+        stat = entry.stat()
+        return {
+            "name": entry.name,
+            "type": "folder" if entry.is_dir() else get_file_content_type(filepath),
+            "size": 0 if is_dir else stat.st_size,
+            "createdAt": round(stat.st_ctime_ns / 1000000),
+            "updatedAt": round(stat.st_mtime_ns / 1000000),
+        }
+
+    with os.scandir(directory) as it, ThreadPoolExecutor() as executor:
+        future_to_entry = {executor.submit(get_file_info, entry): entry for entry in it}
+        for future in as_completed(future_to_entry):
+            file_info = future.result()
+            if file_info is None:
+                continue
+            result.append(file_info)
+
+    cache_helper.set_cache(directory, (result, os.path.getmtime(directory)))
+    return result
 
 
 async def create_file_or_folder(pathname: str, reader):
@@ -111,33 +148,25 @@ from PIL import Image
 from io import BytesIO
 
 
-def get_image_data(filename: str, is_preview: bool):
-    try:
-        with Image.open(filename) as img:
-            original_format = img.format
+def get_image_data(filename: str):
+    with Image.open(filename) as img:
+        max_size = 128
 
-            if is_preview:
-                max_size = 128
+        old_width, old_height = img.size
+        scale = min(max_size / old_width, max_size / old_height)
 
-                original_width, original_height = img.size
-                scale = min(max_size / original_width, max_size / original_height)
+        if scale >= 1:
+            new_width, new_height = old_width, old_height
+        else:
+            new_width = int(old_width * scale)
+            new_height = int(old_height * scale)
 
-                if scale >= 1:
-                    new_width, new_height = original_width, original_height
-                else:
-                    new_width = int(original_width * scale)
-                    new_height = int(original_height * scale)
+        img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
 
-                img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
-
-            img_byte_arr = BytesIO()
-            img.save(img_byte_arr, format=original_format)
-            img_byte_arr.seek(0)
-
-            return img_byte_arr
-    except Exception as e:
-        utils.print_error(str(e))
-        return BytesIO()
+        img_byte_arr = BytesIO()
+        img.save(img_byte_arr, format="WEBP")
+        img_byte_arr.seek(0)
+        return img_byte_arr
 
 
 import zipfile
