@@ -29,21 +29,18 @@ async def scan_output_folder(request):
 
         if os.path.isfile(filepath):
 
-            if not services.asset_is_image(filepath):
-                return web.Response(status=400)
-
-            is_preview = request.query.get("preview", "false") == "true"
-
-            if is_preview:
-                image_arr = services.get_image_data(filepath, is_preview)
-                mime_type = services.get_file_mime_type(filepath)
-
-                return web.Response(body=image_arr.getvalue(), content_type=mime_type)
-            else:
+            preview_type = request.query.get("preview", None)
+            if not preview_type:
                 return web.FileResponse(filepath)
+
+            if services.assert_file_type(filepath, ["image"]):
+                image_data = services.get_image_data(filepath)
+                return web.Response(body=image_data.getvalue(), content_type="image/webp")
+
         elif os.path.isdir(filepath):
             items = services.scan_directory_items(filepath)
             return web.json_response({"success": True, "data": items})
+
         return web.Response(status=404)
     except Exception as e:
         error_msg = f"Obtain failed: {str(e)}"
