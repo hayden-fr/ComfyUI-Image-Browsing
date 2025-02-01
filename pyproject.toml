@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-image-browsing"
 description = "Image Browsing: browsing, download and delete."
-version = "2.2.0"
+version = "2.2.1"
 license = { file = "LICENSE" }
 
 [project.urls]
