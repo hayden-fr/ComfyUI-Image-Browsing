@@ -11,7 +11,8 @@
     :max-width="item.maxWidth"
     :min-height="item.minHeight"
     :max-height="item.maxHeight"
-    :z-index="baseZIndex + index + 1"
+    :auto-z-index="false"
+    :pt:mask:style="{ zIndex: baseZIndex + index + 1 }"
     :pt:root:onMousedown="() => rise(item)"
     @hide="() => close(item)"
   >
