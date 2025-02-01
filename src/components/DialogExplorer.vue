@@ -1,8 +1,7 @@
 <template>
   <div
+    ref="container"
     class="flex h-full w-full flex-col"
-    v-resize="onContainerResize"
-    v-container="container"
     @contextmenu.prevent="nonContextMenu"
   >
     <div :class="['mb-4 flex gap-4 px-4', $xl('flex-row', 'flex-col')]">
@@ -217,13 +216,15 @@ import ResponseScroll from 'components/ResponseScroll.vue'
 import ResponseSelect from 'components/ResponseSelect.vue'
 import { useContainerQueries } from 'hooks/container'
 import { useExplorer } from 'hooks/explorer'
-import { defineResizeCallback } from 'hooks/resize'
+import { useContainerResize } from 'hooks/resize'
 import { chunk } from 'lodash'
 import Button from 'primevue/button'
 import ConfirmDialog from 'primevue/confirmdialog'
 import ContextMenu from 'primevue/contextmenu'
 import InputText from 'primevue/inputtext'
 import { computed, ref } from 'vue'
+
+const container = ref<HTMLElement | null>(null)
 
 const {
   loading,
@@ -241,22 +242,20 @@ const {
 
 const searchContent = ref('')
 
-const colSpan = ref(1)
+const { width } = useContainerResize(container)
+const { $xl } = useContainerQueries(container)
+
+const cols = computed(() => {
+  const containerWidth = width.value
+  const itemWidth = 128
+  return Math.floor(containerWidth / itemWidth)
+})
 
 const folderItems = computed(() => {
   const filterItems = items.value.filter((item) => {
     return item.name.toLowerCase().includes(searchContent.value.toLowerCase())
   })
-
-  return chunk(filterItems, colSpan.value)
-})
-
-const onContainerResize = defineResizeCallback((entries) => {
-  const entry = entries[0]
-
-  const containerWidth = entry.contentRect.width
-  const itemWidth = 128
-  colSpan.value = Math.floor(containerWidth / itemWidth)
+  return chunk(filterItems, cols.value)
 })
 
 const currentFolderName = computed(() => {
@@ -278,8 +277,4 @@ const clearSelected = () => {
 const vFocus = {
   mounted: (el: HTMLInputElement) => el.focus(),
 }
-
-const container = Symbol('container')
-
-const { $xl } = useContainerQueries(container)
 </script>
