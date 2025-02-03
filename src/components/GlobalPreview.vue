@@ -14,7 +14,7 @@
     <div class="h-full w-full select-none p-10">
       <img
         class="h-full w-full object-contain"
-        :src="`/image-browsing${current?.fullname}`"
+        :src="current?.fullname ? `/image-browsing${current?.fullname}` : ''"
         alt="preview"
       />
     </div>
