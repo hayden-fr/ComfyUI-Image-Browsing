@@ -115,7 +115,7 @@ export default defineConfig({
     outDir: 'web',
     minify: 'esbuild',
     target: 'es2022',
-    sourcemap: true,
+    sourcemap: false,
     rollupOptions: {
       // Disabling tree-shaking
       // Prevent vite remove unused exports
