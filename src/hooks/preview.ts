@@ -7,7 +7,7 @@ export const usePreview = defineStore('preview', (store) => {
   const current = ref<DirectoryItem>()
   const currentIndex = ref(0)
 
-  const imageItems = computed(() => {
+  const previewItems = computed(() => {
     return store.explorer.items.value.filter((item) => {
       return item.type === 'image'
     })
@@ -16,18 +16,18 @@ export const usePreview = defineStore('preview', (store) => {
   const openPreviousImage = () => {
     currentIndex.value--
     if (currentIndex.value < 0) {
-      currentIndex.value = imageItems.value.length - 1
+      currentIndex.value = previewItems.value.length - 1
     }
-    const item = imageItems.value[currentIndex.value]
+    const item = previewItems.value[currentIndex.value]
     current.value = item
   }
 
   const openNextImage = () => {
     currentIndex.value++
-    if (currentIndex.value > imageItems.value.length - 1) {
+    if (currentIndex.value > previewItems.value.length - 1) {
       currentIndex.value = 0
     }
-    const item = imageItems.value[currentIndex.value]
+    const item = previewItems.value[currentIndex.value]
     current.value = item
   }
 
@@ -35,18 +35,20 @@ export const usePreview = defineStore('preview', (store) => {
     if (event.key === 'Escape') {
       close()
     }
-    if (event.key === 'ArrowLeft') {
-      openPreviousImage()
-    }
-    if (event.key === 'ArrowRight') {
-      openNextImage()
+    if (current.value?.type === 'image') {
+      if (event.key === 'ArrowLeft') {
+        openPreviousImage()
+      }
+      if (event.key === 'ArrowRight') {
+        openNextImage()
+      }
     }
   }
 
   const open = (item: DirectoryItem) => {
     visible.value = true
     current.value = item
-    currentIndex.value = imageItems.value.indexOf(item)
+    currentIndex.value = previewItems.value.indexOf(item)
     document.addEventListener('keyup', previewKeyboardListener)
   }
 
