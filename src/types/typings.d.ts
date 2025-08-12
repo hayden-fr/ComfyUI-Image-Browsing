@@ -3,7 +3,7 @@ export type ContainerPosition = { left: number; top: number }
 
 export interface DirectoryItem {
   name: string
-  type: 'folder' | 'image'
+  type: 'folder' | 'image' | 'video' | 'audio'
   size: number
   fullname: string
   createdAt: number

@@ -65,7 +65,7 @@ def scan_directory_items(directory: str):
         filepath = entry.path
         is_dir = entry.is_dir()
 
-        if not is_dir and not assert_file_type(filepath, ["image"]):
+        if not is_dir and not assert_file_type(filepath, ["image", "video", "audio"]):
             return None
 
         stat = entry.stat()
@@ -203,7 +203,9 @@ async def package_file(root_dir: str, file_list: list[str]):
                     utils.print_debug(f"Find {root} files: {files}")
                     for file in files:
                         sub_real_path = os.path.join(root, file)
-                        sub_dir = os.path.relpath(root, os.path.join(real_root_dir, filename))
+                        sub_dir = os.path.relpath(
+                            root, os.path.join(real_root_dir, filename)
+                        )
                         sub_filename = os.path.join(filename, sub_dir, file)
                         utils.print_debug(f"Adding file: {sub_filename}")
                         zip_file.write(sub_real_path, sub_filename)

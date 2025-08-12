@@ -139,6 +139,73 @@
                     alt="preview"
                   />
                   <div
+                    v-else-if="
+                      rowItem.type === 'audio' || rowItem.type === 'video'
+                    "
+                    class="relative flex h-full w-full items-center justify-center"
+                  >
+                    <svg
+                      class="icon"
+                      viewBox="0 0 1024 1024"
+                      version="1.1"
+                      xmlns="http://www.w3.org/2000/svg"
+                      p-id="5617"
+                      width="100%"
+                      height="100%"
+                    >
+                      <defs>
+                        <linearGradient
+                          id="f1"
+                          x1="0%"
+                          y1="0%"
+                          x2="100%"
+                          y2="100%"
+                        >
+                          <stop offset="0%" stop-color="#f1f1f1" />
+                          <stop offset="100%" stop-color="#e1e1e1" />
+                        </linearGradient>
+                        <linearGradient
+                          id="f2"
+                          x1="0%"
+                          y1="0%"
+                          x2="100%"
+                          y2="100%"
+                        >
+                          <stop offset="0%" stop-color="#fb904e" />
+                          <stop offset="100%" stop-color="#8861c4" />
+                        </linearGradient>
+                      </defs>
+                      <g>
+                        <path
+                          d="M182,64h460l200,200v696h-660z"
+                          fill="#f5f6f7"
+                          stroke="#9facb5"
+                          stroke-width="2"
+                        ></path>
+                        <path
+                          d="M642,64l200,200h-200z"
+                          fill="url(#f1)"
+                          stroke="#9facb5"
+                          stroke-width="2"
+                        ></path>
+                      </g>
+                      <g>
+                        <path
+                          d="M512,262a10,10 0 1,1 0,500a10,10 0 1,1 0,-500z"
+                          fill="url(#f2)"
+                        ></path>
+                        <path
+                          d="M512,312a10,10 0 1,0 0,400a10,10 0 1,0 0,-400z"
+                          fill="black"
+                        ></path>
+                        <path
+                          d="M532,512m-100,0v-100q0,-20 20,-10l180,100q20,10 0,20l-180,100q-20,10 -20,-10 z"
+                          fill="url(#f1)"
+                        ></path>
+                      </g>
+                    </svg>
+                  </div>
+                  <div
                     class="absolute left-0 top-0 h-full w-full"
                     draggable="true"
                     @dragend.stop="rowItem.onDragEnd"
