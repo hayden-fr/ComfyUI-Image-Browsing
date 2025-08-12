@@ -401,7 +401,7 @@ export const useExplorer = defineStore('explorer', (store) => {
           const fileInput = document.createElement('input')
           fileInput.type = 'file'
           fileInput.multiple = true
-          fileInput.accept = 'image/*'
+          fileInput.accept = 'image/*,audio/*,video/*'
           fileInput.onchange = (e) => {
             const files = (e.target as HTMLInputElement).files
             if (!files) {
