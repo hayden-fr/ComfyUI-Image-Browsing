@@ -1,0 +1,23 @@
+{
+  "outputExplorer": "Output Explorer",
+  "openOutputExplorer": "Open Output Explorer",
+  "searchInFolder": "Search in {0}",
+  "open": "View",
+  "openInNewTab": "View in new tab",
+  "save": "Save",
+  "rename": "Rename",
+  "download": "Archive & Download",
+  "delete": "Delete",
+  "deleteAsk": "Confirm delete {0}?",
+  "selectedItems": "Selected Items",
+  "addFolder": "Add folder",
+  "uploadFile": "Upload file",
+  "newFolderName": "New Folder",
+  "selected": "Selected",
+  "items": "Items",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "setting": {
+    "showDeleteConfirm": "Show delete confirmation dialog"
+  }
+}
